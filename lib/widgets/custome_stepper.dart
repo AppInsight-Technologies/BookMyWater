@@ -909,8 +909,8 @@ class _CustomeStepperState extends State<CustomeStepper> with Navigations {
              loading = isloading;
            });
          },topping_type: topping_type,varid: varid,toppings: toppings,parent_id: parent_id!,newproduct: newproduct!,toppingsList: addToppings,fromScreen: "search_screen",context: context);
-         if(Features.isfacebookappevent)
-           FaceBookAppEvents.facebookAppEvents.logAddToCart(id: int.parse(widget.searchstoredata!.id!).toString(), type: widget.searchstoredata!.itemName!, currency: IConstants.currencyFormat, price: widget.searchstoredata!.type=="1"?double.parse(widget.searchstoredata!.price.toString()):double.parse(widget.priceVariationSearch!.price.toString()));
+         // if(Features.isfacebookappevent)
+         //   FaceBookAppEvents.facebookAppEvents.logAddToCart(id: int.parse(widget.searchstoredata!.id!).toString(), type: widget.searchstoredata!.itemName!, currency: IConstants.currencyFormat, price: widget.searchstoredata!.type=="1"?double.parse(widget.searchstoredata!.price.toString()):double.parse(widget.priceVariationSearch!.price.toString()));
        }
        else {
          cartcontroller.addtoCart(storeSearchData: widget.searchstoredata!, onload: (isloading) {
@@ -949,8 +949,8 @@ class _CustomeStepperState extends State<CustomeStepper> with Navigations {
          }
 
        }
-       if(Features.isfacebookappevent)
-         FaceBookAppEvents.facebookAppEvents.logAddToCart(id: int.parse(widget.itemdata!.id!).toString(), type: widget.itemdata!.itemName!, currency: IConstants.currencyFormat, price: widget.itemdata!.type=="1"?double.parse(widget.itemdata!.price.toString()):double.parse(widget.priceVariation!.price.toString()));
+       // if(Features.isfacebookappevent)
+       //   FaceBookAppEvents.facebookAppEvents.logAddToCart(id: int.parse(widget.itemdata!.id!).toString(), type: widget.itemdata!.itemName!, currency: IConstants.currencyFormat, price: widget.itemdata!.type=="1"?double.parse(widget.itemdata!.price.toString()):double.parse(widget.priceVariation!.price.toString()));
      }
     }
 

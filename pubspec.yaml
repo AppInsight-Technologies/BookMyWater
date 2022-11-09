@@ -128,7 +128,7 @@ dependencies:
   dotted_line:
   flutter_rating_bar:
   in_app_review:
-  facebook_app_events:
+  #facebook_app_events:
   go_router: ^3.0.1
   geolocator: ^8.0.3
   pdf: ^3.7.4

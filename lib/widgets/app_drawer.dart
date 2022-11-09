@@ -8,8 +8,6 @@ import "package:http/http.dart" as http;
 import '../constants/IConstants.dart';
 import '../assets/images.dart';
 import '../models/newmodle/customerremove.dart';
-import '../screens/membership_screen.dart';
-import '../utils/ResponsiveLayout.dart';
 import '../utils/prefUtils.dart';
 import '../assets/ColorCodes.dart';
 import '../constants/features.dart';
@@ -38,18 +36,13 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
   void initState() {
     super.initState();
   }
-
-  void launchWhatsapp({required number,required message})async{
-    String url ="whatsapp://send?phone=$number&text=$message";
-    await canLaunch(url)?launch(url):print('can\'t open whatsapp');
-  }
   dialogForFreemembership (){
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(S.of(context).delete_account,//"Are you sure you want to delete account?",
+          title: Text("Are you sure you want to delete account?",//"You are eligible for 3 month free membership",
             style: TextStyle(
               color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold,
             ), ),
@@ -60,7 +53,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(S.of(context).delete_Content +IConstants.APP_NAME,//"You are eligible for 3 month free membership",
+                Text("Once deleted, you would lose access to this account along with the saved details on " +IConstants.APP_NAME,//"You are eligible for 3 month free membership",
                   style: TextStyle(
                     color: Colors.black, fontSize: 14,
                   ), ),
@@ -73,23 +66,23 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
           actions: <Widget>[
             FlatButton(
               child: Text(
-                S.of(context).cancel,
+                "Cancel",
                 style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold,color: ColorCodes.greenColor),
               ),
               onPressed: () async {
-
+                // Navigator.of(context).pushReplacementNamed(MySubscriptionScreen.routeName);
                 Navigator.of(context).pop();
               },
 
             ),
             FlatButton(
               child: Text(
-              S.of(context).proceed,
+                "Proceed",
                 style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold,color: ColorCodes.greenColor),
               ),
               onPressed: () async {
                 print("apikey......"+PrefUtils.prefs!.getString("apikey").toString());
-
+                // Navigator.of(context).pushReplacementNamed(MySubscriptionScreen.routeName);
                 customerremoveApi.getCustomerremove(ParamBodyData(user: PrefUtils.prefs!.getString("apikey"))).then((value) {
                   if( value.status == 200){
                     Navigator.of(context).pop();
@@ -175,6 +168,12 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
       },
     );
   }
+
+  void launchWhatsapp({required number,required message})async{
+    String url ="whatsapp://send?phone=$number&text=$message";
+    await canLaunch(url)?launch(url):print('can\'t open whatsapp');
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -213,7 +212,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                               fontWeight: FontWeight.bold,
                               fontSize: 16.0),
                         ),
-                       Spacer(),
+                        Spacer(),
                         Icon(Icons.keyboard_arrow_right,
                             color: ColorCodes.greyColor,
                             size: 30),
@@ -243,9 +242,9 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                               store.userData.username??"",
                               maxLines: 2,
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
-                            color: ColorCodes.blackColor),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.0,
+                                  color: ColorCodes.blackColor),
                             ),
                             SizedBox(
                               height: 5.0,
@@ -299,48 +298,48 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       Navigator.of(context).pop();
-                       !PrefUtils.prefs!.containsKey("apikey")
+                      !PrefUtils.prefs!.containsKey("apikey")
                           ?
-                       Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                      Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                           :
-                       Navigation(context, name: Routename.Help, navigatore: NavigatoreTyp.Push);
+                      Navigation(context, name: Routename.Help, navigatore: NavigatoreTyp.Push);
                     },
                     child: Column(
-                          children: <Widget>[
-                            Image.asset(Images.appbar_help,
-                                color:  !PrefUtils.prefs!.containsKey("apikey")
-                                    ? ColorCodes.greyColor
+                      children: <Widget>[
+                        Image.asset(Images.appbar_help,
+                            color:  !PrefUtils.prefs!.containsKey("apikey")
+                                ? ColorCodes.greyColor
 
-                                    : IConstants.isEnterprise? ColorCodes.primaryColor:ColorCodes.liteColor,
-                           
-                                height: 20.0, width: 20.0),
-                            SizedBox(height: 1),
+                                : IConstants.isEnterprise? ColorCodes.primaryColor:ColorCodes.liteColor,
 
-                            Text(S .of(context).ordering_help,
-                              //S .of(context).help,
-                              style: TextStyle(
-                                overflow: TextOverflow.ellipsis,
-                                  fontSize: 14,
-                                  color:  !PrefUtils.prefs!.containsKey("apikey")
-                                      ? ColorCodes.greyColor
-                                      : ColorCodes.mediumBlackColor),
-                            ),
+                            height: 20.0, width: 20.0),
+                        SizedBox(height: 1),
+
+                        Text(S .of(context).ordering_help,
+                          //S .of(context).help,
+                          style: TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                              color:  !PrefUtils.prefs!.containsKey("apikey")
+                                  ? ColorCodes.greyColor
+                                  : ColorCodes.mediumBlackColor),
+                        ),
                       ],
                     ),
                   ),
-                      SizedBox(width: 15),
+                  SizedBox(width: 15),
                   if((Features.ismultivendor && IConstants.isEnterprise)?Features.isWalletroot:Features.isWallet)
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context).pop();
-                         !PrefUtils.prefs!.containsKey("apikey")
+                        !PrefUtils.prefs!.containsKey("apikey")
                             ?
-                         Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                        Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                             :
-                         Navigation(context, name: Routename.Wallet, navigatore: NavigatoreTyp.Push,
-                             qparms: {
-                           "type": "wallet",
-                         });
+                        Navigation(context, name: Routename.Wallet, navigatore: NavigatoreTyp.Push,
+                            qparms: {
+                              "type": "wallet",
+                            });
                       },
                       child: Column(
                         children: <Widget>[
@@ -379,7 +378,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                                     ? ColorCodes.greyColor
 
                                     : IConstants.isEnterprise? ColorCodes.primaryColor:ColorCodes.liteColor),
-                          
+
                             SizedBox(height: 1),
 
                             Text(
@@ -400,17 +399,17 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
             ),
 
             Container(
-              width: MediaQuery.of(context).size.width,
-              color: ColorCodes.appdrawerColor,
-              padding: EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
-              child: Text(
-                S .of(context).order_more,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: ColorCodes.blackColor,
-                  )
-              )
+                width: MediaQuery.of(context).size.width,
+                color: ColorCodes.appdrawerColor,
+                padding: EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 15),
+                child: Text(
+                    S .of(context).order_more,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: ColorCodes.blackColor,
+                    )
+                )
             ),
 
             Container(
@@ -422,13 +421,13 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () {
-                         !PrefUtils.prefs!.containsKey("apikey")
+                        !PrefUtils.prefs!.containsKey("apikey")
                             ?
-                         Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                        Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                             :
-                         Navigation(context, name:Routename.MyOrders,navigatore: NavigatoreTyp.Push,qparms: {
-                           "orderhistory": null
-                         });
+                        Navigation(context, name:Routename.MyOrders,navigatore: NavigatoreTyp.Push,qparms: {
+                          "orderhistory": null
+                        });
                       },
                       child: Row(
                         children: <Widget>[
@@ -436,7 +435,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                             width: 5.0,
                           ),
                           Image.asset(Images.appbar_myorder, height: 18.0, width: 18.0,
-                          color: ColorCodes.blackColor),
+                              color: ColorCodes.blackColor),
                           SizedBox(
                             width: 8.0,
                           ),
@@ -451,46 +450,46 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                       ),
                     ),
                     SizedBox(height: 15),
-                    if(Features.isSubscription)
-                      GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () {
-                           !PrefUtils.prefs!.containsKey("apikey")
-                              ?
-                           Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
-                              :
-                           Navigation(context, name: Routename.MySubscription, navigatore: NavigatoreTyp.Push);
-                        },
-                        child: Row(
-                          children: <Widget>[
-                            SizedBox(
-                              width: 5.0,
-                            ),
-                            Image.asset(Images.appbar_subscription, height: 18.0, width: 18.0,
-                                color: ColorCodes.blackColor),
-                            SizedBox(
-                              width: 8.0,
-                            ),
-                            Text(
-                              S .of(context).my_subscription,
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  color:  !PrefUtils.prefs!.containsKey("apikey") ? ColorCodes.blackColor : ColorCodes.blackColor),
-                            ),
-                            Spacer(),
-                          ],
-                        ),
-                      ),
-                    if(Features.isSubscription)
-                    SizedBox(height: 15),
+                    // if(Features.isSubscription)
+                    //   GestureDetector(
+                    //     behavior: HitTestBehavior.translucent,
+                    //     onTap: () {
+                    //       !PrefUtils.prefs!.containsKey("apikey")
+                    //           ?
+                    //       Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                    //           :
+                    //       Navigation(context, name: Routename.MySubscription, navigatore: NavigatoreTyp.Push);
+                    //     },
+                    //     child: Row(
+                    //       children: <Widget>[
+                    //         SizedBox(
+                    //           width: 5.0,
+                    //         ),
+                    //         Image.asset(Images.appbar_subscription, height: 18.0, width: 18.0,
+                    //             color: ColorCodes.blackColor),
+                    //         SizedBox(
+                    //           width: 8.0,
+                    //         ),
+                    //         Text(
+                    //           S .of(context).my_subscription,
+                    //           style: TextStyle(
+                    //               fontSize: 15,
+                    //               color:  !PrefUtils.prefs!.containsKey("apikey") ? ColorCodes.blackColor : ColorCodes.blackColor),
+                    //         ),
+                    //         Spacer(),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // if(Features.isSubscription)
+                    //   SizedBox(height: 15),
                     if(Features.isShoppingList)
                       GestureDetector(
                         onTap: () {
-                           !PrefUtils.prefs!.containsKey("apikey")
+                          !PrefUtils.prefs!.containsKey("apikey")
                               ?
-                           Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                          Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                               :
-                           Navigation(context, name: Routename.Shoppinglist, navigatore: NavigatoreTyp.Push);
+                          Navigation(context, name: Routename.Shoppinglist, navigatore: NavigatoreTyp.Push);
                         },
                         child: Row(
                           children: <Widget>[
@@ -513,11 +512,11 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () {
-                         !PrefUtils.prefs!.containsKey("apikey")
+                        !PrefUtils.prefs!.containsKey("apikey")
                             ?
-                         Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.PushReplacment)
+                        Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.PushReplacment)
                             :
-                         Navigation(context, name: Routename.AddressBook, navigatore: NavigatoreTyp.Push);
+                        Navigation(context, name: Routename.AddressBook, navigatore: NavigatoreTyp.Push);
                       },
                       child: Row(
                         children: <Widget>[
@@ -545,10 +544,10 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                 )
             ),
             if(PrefUtils.prefs!.getString('myreffer') != 'null' && ! !PrefUtils.prefs!.containsKey("apikey") && Features.isReferEarn)
-            Container(
-              color:  ColorCodes.appdrawerColor,
-              height: 20,
-            ),
+              Container(
+                color:  ColorCodes.appdrawerColor,
+                height: 20,
+              ),
             if(PrefUtils.prefs!.getString('myreffer') != 'null' && ! !PrefUtils.prefs!.containsKey("apikey") && Features.isReferEarn)
               GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -592,14 +591,11 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
             (!Features.ismultivendor && Features.isMembership)? GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                 !PrefUtils.prefs!.containsKey("apikey")
+                !PrefUtils.prefs!.containsKey("apikey")
                     ?
-                 Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                     :
-                 (Vx.isWeb &&
-                !ResponsiveLayout.isSmallScreen(context)) ?
-                MembershipInfo(context):
-                 Navigation(context, name: Routename.Membership, navigatore: NavigatoreTyp.Push);
+                Navigation(context, name: Routename.Membership, navigatore: NavigatoreTyp.Push);
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -664,7 +660,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                           style: TextStyle(
                               fontSize: 15,
                               color:  IConstants.isEnterprise? ColorCodes.primaryColor:ColorCodes.liteColor),
-                         ),
+                        ),
                         SizedBox(width: 10),
                       ],
                     )
@@ -672,7 +668,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     Row(
                       children: [
                         Text(
-                        S.of(context).buy,
+                          S.of(context).buy,
                           style: TextStyle(
                               fontSize: 15,
                               color:  IConstants.isEnterprise? ColorCodes.primaryColor:ColorCodes.liteColor),
@@ -695,9 +691,6 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     ?
                 Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                     :
-                (Vx.isWeb &&
-                !ResponsiveLayout.isSmallScreen(context))?
-                MembershipInfo(context):
                 Navigation(context, name: Routename.Membership, navigatore: NavigatoreTyp.Push);
               },
               child: Container(
@@ -786,11 +779,11 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
             (Features.isLoyalty)? GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                 !PrefUtils.prefs!.containsKey("apikey")
+                !PrefUtils.prefs!.containsKey("apikey")
                     ?
-                 Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
+                Navigation(context, name: Routename.SignUpScreen, navigatore: NavigatoreTyp.Push)
                     :
-                 Navigation(context, name: Routename.Loyalty, navigatore: NavigatoreTyp.Push);
+                Navigation(context, name: Routename.Loyalty, navigatore: NavigatoreTyp.Push);
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -814,7 +807,7 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                               : ColorCodes.blackColor),
                     ),
                     Spacer(),
-                     !PrefUtils.prefs!.containsKey("apikey")?
+                    !PrefUtils.prefs!.containsKey("apikey")?
                     Text("0",
                       style: TextStyle(
                           color: ColorCodes.blackColor, fontSize: 16.0),
@@ -862,27 +855,27 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
             ),
             SizedBox(height: 15),
             GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  Navigation(context, name: Routename.Privacy, navigatore: NavigatoreTyp.Push);
-                },
-                child: Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 25.0,
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                Navigation(context, name: Routename.Privacy, navigatore: NavigatoreTyp.Push);
+              },
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 25.0,
+                  ),
+                  Expanded(
+                    child: Text(
+                      S .of(context).privacy_others,
+                      style: TextStyle(
+                          fontSize: 15,
+                          color: ColorCodes.blackColor),
                     ),
-                    Expanded(
-                      child: Text(
-                        S .of(context).privacy_others,
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: ColorCodes.blackColor),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-                SizedBox(height: 15),
+            ),
+            SizedBox(height: 15),
             SizedBox(height: 15),
             GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -909,29 +902,6 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
               ),
             ),
             SizedBox(height: 15),
-
-            // GestureDetector(
-            //   behavior: HitTestBehavior.translucent,
-            //   onTap: () {
-            //     dialogForFreemembership();
-            //   },
-            //   child: Row(
-            //     children: <Widget>[
-            //       SizedBox(
-            //         width: 25.0,
-            //       ),
-            //       Text(
-            //         /* !Vx.isAndroid && !Vx.isWeb
-            //             ? S .of(context).rate_us
-            //             :*/ "Delete Account",
-            //         style: TextStyle(
-            //             fontSize: 15, color: ColorCodes.blackColor),
-            //       ),
-            //       Spacer(),
-            //     ],
-            //   ),
-            // ),
-            // SizedBox(height: 15),
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
@@ -951,9 +921,9 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     width: 25.0,
                   ),
                   Text(
-                   /* !Vx.isAndroid && !Vx.isWeb
+                    !Vx.isAndroid && !Vx.isWeb
                         ? S .of(context).rate_us
-                        :*/ S .of(context).rate_us,
+                        : S .of(context).rate_us,
                     style: TextStyle(
                         fontSize: 15, color: ColorCodes.blackColor),
                   ),
@@ -961,6 +931,30 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                 ],
               ),
             ),
+            SizedBox(height: 15),
+            PrefUtils.prefs!.containsKey("apikey")
+                ?
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                dialogForFreemembership();
+              },
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 25.0,
+                  ),
+                  Text(
+                    /* !Vx.isAndroid && !Vx.isWeb
+                        ? S .of(context).rate_us
+                        :*/ "Delete Account",
+                    style: TextStyle(
+                        fontSize: 15, color: ColorCodes.blackColor),
+                  ),
+                  Spacer(),
+                ],
+              ),
+            ):SizedBox.shrink(),
             SizedBox(height: 15),
             if (! !PrefUtils.prefs!.containsKey("apikey"))
               GestureDetector(
@@ -990,15 +984,15 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     }
                     if (PrefUtils.prefs!.containsKey("isdelivering")) {
                       _isDelivering =
-                          PrefUtils.prefs!.getString("isdelivering")!;
+                      PrefUtils.prefs!.getString("isdelivering")!;
                     }
                     if (PrefUtils.prefs!.containsKey("defaultlocation")) {
                       defaultLocation =
-                          PrefUtils.prefs!.getString("defaultlocation")!;
+                      PrefUtils.prefs!.getString("defaultlocation")!;
                     }
                     if (PrefUtils.prefs!.containsKey("deliverylocation")) {
                       deliverylocation =
-                          PrefUtils.prefs!.getString("deliverylocation")!;
+                      PrefUtils.prefs!.getString("deliverylocation")!;
                     }
                     if (PrefUtils.prefs!.containsKey("latitude")) {
                       _latitude = PrefUtils.prefs!.getString("latitude")!;
@@ -1108,15 +1102,15 @@ class _AppDrawerState extends State<AppDrawer> with Navigations {
                     }
                     if (PrefUtils.prefs!.containsKey("isdelivering")) {
                       _isDelivering =
-                          PrefUtils.prefs!.getString("isdelivering")!;
+                      PrefUtils.prefs!.getString("isdelivering")!;
                     }
                     if (PrefUtils.prefs!.containsKey("defaultlocation")) {
                       defaultLocation =
-                          PrefUtils.prefs!.getString("defaultlocation")!;
+                      PrefUtils.prefs!.getString("defaultlocation")!;
                     }
                     if (PrefUtils.prefs!.containsKey("deliverylocation")) {
                       deliverylocation =
-                          PrefUtils.prefs!.getString("deliverylocation")!;
+                      PrefUtils.prefs!.getString("deliverylocation")!;
                     }
                     if (PrefUtils.prefs!.containsKey("latitude")) {
                       _latitude = PrefUtils.prefs!.getString("latitude")!;
