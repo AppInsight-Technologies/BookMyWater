@@ -114,7 +114,7 @@ dependencies:
   collection:
   #    paytm_allinonesdk:  #1.0.3 for solving conflict between Image_picker0.6.7+22 and paytm all in one sdk
   syncfusion_flutter_datepicker:
-  permission_handler: 8.2.0
+  permission_handler:
   custom_radio_grouped_button:
   device_apps:
   velocity_x:
@@ -128,7 +128,7 @@ dependencies:
   dotted_line:
   flutter_rating_bar:
   in_app_review:
-  #facebook_app_events:
+  facebook_app_events:
   go_router: ^3.0.1
   geolocator: ^8.0.3
   pdf: ^3.7.4

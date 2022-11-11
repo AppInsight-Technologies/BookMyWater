@@ -82,7 +82,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
       });
       try {
         if (Platform.isIOS) {
-        //  SignInApple.clickAppleSignIn();
+          SignInApple.clickAppleSignIn();
           // SignInApple.onCredentialRevoked.listen((_) {});
           if (await SignInApple.canUseAppleSigin()) {
             setState(() {
@@ -107,7 +107,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         _referController.text = PrefUtils.prefs!.getString("referCodeDynamic")!;
       }
       if (PrefUtils.prefs!.getString('applesignin') == "yes") {
-        _appletoken = PrefUtils.prefs!.getString('apple').toString();
+        _appletoken = PrefUtils.prefs!.getString('apple')!;
       } else {
         _appletoken = "";
       }
@@ -282,6 +282,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
 
     PrefUtils.prefs!.setString('prevscreen', "signingoogle");
     //checkusertype("Googlesigin");
+    //Navigator.pop(context);
     userappauth.login(AuthPlatform.google,onSucsess: (SocialAuthUser value,_){
       if(value.newuser!){
         userappauth.register(data:RegisterAuthBodyParm(
@@ -289,13 +290,13 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
           email: value.email,
           branch: PrefUtils.prefs!.getString("branch"),
           tokenId:PrefUtils.prefs!.getString("ftokenid"),
-          guestUserId:PrefUtils.prefs!.getString("tokenid"),
+          guestUserId:PrefUtils.prefs!.getString("ftokenid"),
           device:channel,
           referralid:_referController.text,
           path: _appletoken ,
           mobileNumber: ((PrefUtils.prefs!.getString('Mobilenum'))??""),
-          ref: IConstants.refIdForMultiVendor.toString(),
-          branchtype:IConstants.branchtype.toString(),
+          ref: IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor.toString():"",
+          branchtype: IConstants.isEnterprise && Features.ismultivendor?IConstants.branchtype.toString():"",
           language_code: IConstants.languageId,
         ),onSucsess: (UserData response){
           //  PrefUtils.prefs!.setString('FirstName', response.username);
@@ -338,7 +339,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         _auth.getuserProfile(onsucsess: (value){
 
         },onerror: (){
-
         });
         /* Navigator.pushNamedAndRemoveUntil(
               context, HomeScreen.routeName, (route) => false);*/
@@ -371,8 +371,8 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
 
     switch (result.status) {
       case FacebookLoginStatus.error:
-        // if(Features.isfacebookappevent)
-        //   FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
+        if(Features.isfacebookappevent)
+          FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
         Navigator.of(context).pop();
         if(Platform.isIOS)FocusManager.instance.primaryFocus!.unfocus();
         Fluttertoast.showToast(
@@ -395,8 +395,8 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         //onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.loggedIn:
-        // if(Features.isfacebookappevent)
-        //   FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
+        if(Features.isfacebookappevent)
+          FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
         final token = result.accessToken.token;
         result.accessToken.userId;
         final graphResponse = await http.get(
@@ -915,8 +915,8 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
           referralid:_referController.text,
           path: _appletoken ,
           mobileNumber: ((PrefUtils.prefs!.getString('Mobilenum'))??""),
-          ref: IConstants.refIdForMultiVendor.toString(),
-          branchtype: IConstants.branchtype.toString(),
+          ref: IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor.toString():"",
+          branchtype: IConstants.isEnterprise && Features.ismultivendor?IConstants.branchtype.toString():"",
           language_code: IConstants.languageId,
         ),onSucsess: (UserData response){
           //  PrefUtils.prefs!.setString('FirstName', response.username);
@@ -1127,25 +1127,100 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                   ],
                 ),
               )
-                        :
-                    Container(
-                      width: MediaQuery.of(context).size.width / 1.2,
-                      height: MediaQuery.of(context).size.height / 15,
-                      child: TextFormField(
-                          readOnly: true,
+                  :
+              Container(
+                width: MediaQuery.of(context).size.width / 1.2,
+                height: MediaQuery.of(context).size.height / 15,
+                child: TextFormField(
+                  readOnly: true,
+                  // controller: name,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(12)
+                  ],
+                  cursorColor: ColorCodes.emailColor,//Theme.of(context).primaryColor,
+                  keyboardType: TextInputType.number,
+                  controller:_countryController,
+                  //style: TextStyle(fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                      prefixIcon: Image.asset(Images.countryImg, color: ColorCodes.blackColor),
+                      hintText: countryName! + " (" + IConstants.countryCode + ")",
+                      hintStyle: TextStyle(
+                        color: ColorCodes.blackColor, fontWeight: FontWeight.w800,
+
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: BorderSide(
+                          color: ColorCodes.emailColor,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: BorderSide(
+                          color: ColorCodes.emailColor,
+                          // width: 1.0,
+                        ),
+                      ),
+                      labelText: S .of(context).country_region,
+                      labelStyle: TextStyle(
+                          color: ColorCodes.blackColor,
+                          fontSize: 16.0
+                      ),
+                      errorStyle: TextStyle(
+                          color: Colors.black
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      )
+                  ), //it means user entered a valid input
+                ),
+              ),
+              //     : Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //   children: [
+              //
+              //     Text(
+              //         S .of(context).country_region,//"Country/Region",
+              //         style: TextStyle(
+              //           color: ColorCodes.greyColor,
+              //         )),
+              //     Text(countryName! + " (" + IConstants.countryCode + ")",
+              //         style: TextStyle(
+              //             color: Colors.black, fontWeight: FontWeight.bold))
+              //   ],
+              // ),
+              /*Spacer(),
+                        Row(
+                          children: [
+                            Icon(Icons.keyboard_arrow_down),
+                          ],
+                        ),*/
+
+
+
+              SizedBox(height: 20,),
+              Container(
+                  width: MediaQuery.of(context).size.width / 1.2,
+                  // height: MediaQuery.of(context).size.height / 15,//52.0,
+                  child:
+                  Form(
+                      key: _form,
+                      child:
+                      TextFormField(
                         // controller: name,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(12)
                         ],
                         cursorColor: ColorCodes.emailColor,//Theme.of(context).primaryColor,
                         keyboardType: TextInputType.number,
-                        controller:_countryController,
-                        //style: TextStyle(fontWeight: FontWeight.bold),
                         decoration: InputDecoration(
-                            prefixIcon: Image.asset(Images.countryImg, color: ColorCodes.blackColor),
-                            hintText: countryName! + " (" + IConstants.countryCode + ")",
+                            contentPadding:
+                            EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                            prefixIcon: Image.asset(Images.phoneImg, color: ColorCodes.blackColor),
+                            hintText: S .of(context).enter_yor_mobile_number,
                             hintStyle: TextStyle(
-                              color: ColorCodes.blackColor, fontWeight: FontWeight.w800,
+                              color: ColorCodes.blackColor,
 
                             ),
                             focusedBorder: OutlineInputBorder(
@@ -1161,7 +1236,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                                 // width: 1.0,
                               ),
                             ),
-                            labelText: S .of(context).country_region,
+                            labelText: S.of(context).mobile_number,
                             labelStyle: TextStyle(
                                 color: ColorCodes.blackColor,
                                 fontSize: 16.0
@@ -1172,96 +1247,21 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             )
-                        ), //it means user entered a valid input
-                      ),
-                    ),
-                    //     : Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    //   children: [
-                    //
-                    //     Text(
-                    //         S .of(context).country_region,//"Country/Region",
-                    //         style: TextStyle(
-                    //           color: ColorCodes.greyColor,
-                    //         )),
-                    //     Text(countryName! + " (" + IConstants.countryCode + ")",
-                    //         style: TextStyle(
-                    //             color: Colors.black, fontWeight: FontWeight.bold))
-                    //   ],
-                    // ),
-                    /*Spacer(),
-                        Row(
-                          children: [
-                            Icon(Icons.keyboard_arrow_down),
-                          ],
-                        ),*/
-
-
-
-              SizedBox(height: 20,),
-              Container(
-                  width: MediaQuery.of(context).size.width / 1.2,
-                 // height: MediaQuery.of(context).size.height / 15,//52.0,
-                  child:
-                  Form(
-                      key: _form,
-                      child:
-                      TextFormField(
-                        // controller: name,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(12)
-                          ],
-                          cursorColor: ColorCodes.emailColor,//Theme.of(context).primaryColor,
-                          keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            contentPadding:
-                            EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                            prefixIcon: Image.asset(Images.phoneImg, color: ColorCodes.blackColor),
-                            hintText: S .of(context).enter_yor_mobile_number,
-                          hintStyle: TextStyle(
-                                    color: ColorCodes.blackColor,
-
-                                  ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0),
-                              borderSide: BorderSide(
-                                color: ColorCodes.emailColor,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0),
-                              borderSide: BorderSide(
-                                color: ColorCodes.emailColor,
-                               // width: 1.0,
-                              ),
-                            ),
-                            labelText: S.of(context).mobile_number,
-                            labelStyle: TextStyle(
-                              color: ColorCodes.blackColor,
-                                fontSize: 16.0
-                            ),
-                            errorStyle: TextStyle(
-                                color: Colors.black
-                            ),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                            )
                         ),
-                          validator: (value) {
-                            String patttern = r'(^(?:[+0]9)?[0-9]{6,10}$)';
-                            RegExp regExp = new RegExp(patttern);
-                            if (value!.isEmpty) {
-                              return S .of(context).please_enter_phone_number;//'Please enter a Mobile number.';
-                            } else if (!regExp.hasMatch(value)) {
-                              return S .of(context).valid_phone_number;//'Please enter valid mobile number';
-                            }
-                            return null;
-                          }, //it means user entered a valid input
+                        validator: (value) {
+                          String patttern = r'(^(?:[+0]9)?[0-9]{6,10}$)';
+                          RegExp regExp = new RegExp(patttern);
+                          if (value!.isEmpty) {
+                            return S .of(context).please_enter_phone_number;//'Please enter a Mobile number.';
+                          } else if (!regExp.hasMatch(value)) {
+                            return S .of(context).valid_phone_number;//'Please enter valid mobile number';
+                          }
+                          return null;
+                        }, //it means user entered a valid input
 
-                          onSaved: (value) {
-                            addMobilenumToSF(value!);
-                          },
+                        onSaved: (value) {
+                          addMobilenumToSF(value!);
+                        },
                       )
 
                   )),
@@ -1447,59 +1447,59 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                     children: [
 
                       if(Features.issignintruecaller)
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: 30),
-                        child: GestureDetector(
-                          onTap: () {
-                            _dialogforProcessing();
-                            //_handleSignIn();
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30),
+                          child: GestureDetector(
+                            onTap: () {
+                              _dialogforProcessing();
+                              //_handleSignIn();
 
-                          },
-                          child: Material(
-                            borderRadius: BorderRadius.circular(4.0),
-                            // elevation: 2,
-                            // shadowColor: Colors.grey,
-                            child: Container(
+                            },
+                            child: Material(
+                              borderRadius: BorderRadius.circular(4.0),
+                              // elevation: 2,
+                              // shadowColor: Colors.grey,
+                              child: Container(
 
-                              padding: EdgeInsets.only(
-                                /*left: 10.0, right: 5.0,*/top:10, bottom:10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(width: 0.5, color: ColorCodes.emailColor),),
-                              child:
-                              Padding(
-                                padding: EdgeInsets.only(right:MediaQuery.of(context).size.width/10,//30.0,
-                                  left:MediaQuery.of(context).size.width/12,),
-                                child: Center(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: <Widget>[
+                                padding: EdgeInsets.only(
+                                  /*left: 10.0, right: 5.0,*/top:10, bottom:10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4.0),
+                                  border: Border.all(width: 0.5, color: ColorCodes.emailColor),),
+                                child:
+                                Padding(
+                                  padding: EdgeInsets.only(right:MediaQuery.of(context).size.width/10,//30.0,
+                                    left:MediaQuery.of(context).size.width/12,),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: <Widget>[
 
-                                      Expanded(
-                                        child: Text(
-                                          S .of(context).signin_truecaller,//'Sign in with google     ' , //"Sign in with Google",
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          style: TextStyle(fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: ColorCodes.signincolor),
+                                        Expanded(
+                                          child: Text(
+                                            S .of(context).signin_truecaller,//'Sign in with google     ' , //"Sign in with Google",
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            style: TextStyle(fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: ColorCodes.signincolor),
+                                          ),
                                         ),
-                                      ),
-                                      SvgPicture.asset(Images.googleImg, width: 25, height: 25,),
-                                      //Image.asset(Images.googleImg,width: 20,height: 30,),
-                                      SizedBox(
-                                        width: 14,
-                                      ),
-                                    ],
+                                        SvgPicture.asset(Images.googleImg, width: 25, height: 25,),
+                                        //Image.asset(Images.googleImg,width: 20,height: 30,),
+                                        SizedBox(
+                                          width: 14,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                       if(Features.issignintruecaller)
-                      SizedBox(height: 15,),
+                        SizedBox(height: 15,),
                       Container(
                         margin: EdgeInsets.symmetric(horizontal: 30),
                         width:MediaQuery.of(context).size.width,
@@ -1508,7 +1508,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                           onTap: () {
                             _dialogforProcessing();
                             _handleSignIn();
-
                           },
                           child: Material(
                             borderRadius: BorderRadius.circular(4.0),
@@ -1553,113 +1552,63 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                         ),
                       ),
                       SizedBox(height: 15,),
-                      Container(
-                        width:MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.symmetric(horizontal: 30),
-                        child: GestureDetector(
-                          onTap: () {
-                            _dialogforProcessing();
-                            // facebooklogin();
-                            // if(Features.isfacebookappevent)
-                            //   FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
-                            userappauth.login(AuthPlatform.facebook,onSucsess: (SocialAuthUser value,_){
-                              //  PrefUtils.prefs!.setString('skip', "no");
-                              //  PrefUtils.prefs!.setString('applesignin', "no");
-                              if(value.newuser!){
-                                userappauth.register(data:RegisterAuthBodyParm(
-                                  username: value.name,
-                                  email: value.email,
-                                  branch: PrefUtils.prefs!.getString("branch"),
-                                  tokenId:PrefUtils.prefs!.getString("ftokenid"),
-                                  guestUserId:PrefUtils.prefs!.getString("ftokenid"),
-                                  device:channel,
-                                  referralid:_referController.text,
-                                  path: _appletoken, mobileNumber: '' ,
-                                  ref: IConstants.refIdForMultiVendor.toString(),
-                                  branchtype: IConstants.branchtype.toString(),
-                                  language_code: IConstants.languageId,
-                                  //mobileNumber: PrefUtils.prefs!.getString('Mobilenum')
-                                ),onSucsess: (UserData response){
-                                  // PrefUtils.prefs!.setString('FirstName', response.username);
-                                  //  PrefUtils.prefs!.setString('LastName', "");
-                                  //  PrefUtils.prefs!.setString('Email', response.email);
-
-                                  /*Navigator.pushNamedAndRemoveUntil(
-                                  context, HomeScreen.routeName, (route) => false);*/
-                                  Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
-                                },onerror: (message){
-                                  Navigator.of(context).pop();
-                                  Fluttertoast.showToast(msg: message);
-                                });
-                              }else{
-                                PrefUtils.prefs!.setString('LoginStatus', "true");
-                                PrefUtils.prefs!.setString("apikey",value.id!);
-                                _auth.getuserProfile(onsucsess: (value){
-
-                                },onerror: (){
-
-                                });
-                                /*Navigator.pushNamedAndRemoveUntil(
-                                context, HomeScreen.routeName, (route) => false);*/
-                                Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
-                                ///navigatev to home page
-                              }
-
-                            },onerror:(message){
-                              Navigator.of(context).pop();
-                              Fluttertoast.showToast(msg: message);
-                            });
-                          },
-                          child: Material(
-                            borderRadius: BorderRadius.circular(4.0),
-                            // elevation: 2,
-                            // shadowColor: Colors.grey,
-                            child: Container(
-                              padding: EdgeInsets.only(
-                                /*left: 10.0, right: 5.0,*/top:10, bottom:10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(width: 0.5, color: ColorCodes.emailColor),),
-                              child:
-                              Padding(
-                                padding: EdgeInsets.only(/*right:10,*///MediaQuery.of(context).size.width/10,//30.0,
-                                  left:10,/*MediaQuery.of(context).size.width/12,*/),
-                                child: Center(
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      SvgPicture.asset(Images.facebookImg, width: 25, height: 25,),
-                                      SizedBox(
-                                        width: 15,
-                                      ),
-                                      Text(
-                                        S .of(context).sign_in_with_facebook,//"Sign in with Facebook" ,// "Sign in with Facebook",
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        style: TextStyle(fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: ColorCodes.signincolor),
-                                      ),
-                                      // Image.asset(Images.facebookImg,width: 20,height: 30,),
-                                      // SizedBox(
-                                      //   width: 14,
-                                      // ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      if (_isAvailable)
+                      if(Features.facebooklogin)
                         Container(
-                          margin: EdgeInsets.symmetric(horizontal: 28,vertical: 15),
+                          width:MediaQuery.of(context).size.width,
+                          margin: EdgeInsets.symmetric(horizontal: 30),
                           child: GestureDetector(
                             onTap: () {
-                              appleLogIn();
+                              _dialogforProcessing();
+                              // facebooklogin();
+                              if(Features.isfacebookappevent)
+                                FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
+                              userappauth.login(AuthPlatform.facebook,onSucsess: (SocialAuthUser value,_){
+                                //  PrefUtils.prefs!.setString('skip', "no");
+                                //  PrefUtils.prefs!.setString('applesignin', "no");
+                                if(value.newuser!){
+                                  userappauth.register(data:RegisterAuthBodyParm(
+                                    username: value.name,
+                                    email: value.email,
+                                    branch: PrefUtils.prefs!.getString("branch"),
+                                    tokenId:PrefUtils.prefs!.getString("ftokenid"),
+                                    guestUserId:PrefUtils.prefs!.getString("ftokenid"),
+                                    device:channel,
+                                    referralid:_referController.text,
+                                    path: _appletoken, mobileNumber: '' ,
+                                    ref: IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor.toString():"",
+                                    branchtype: IConstants.isEnterprise && Features.ismultivendor?IConstants.branchtype.toString():"",
+                                    language_code: IConstants.languageId,
+                                    //mobileNumber: PrefUtils.prefs!.getString('Mobilenum')
+                                  ),onSucsess: (UserData response){
+                                    // PrefUtils.prefs!.setString('FirstName', response.username);
+                                    //  PrefUtils.prefs!.setString('LastName', "");
+                                    //  PrefUtils.prefs!.setString('Email', response.email);
+
+                                    /*Navigator.pushNamedAndRemoveUntil(
+                                  context, HomeScreen.routeName, (route) => false);*/
+                                    Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
+                                  },onerror: (message){
+                                    Navigator.of(context).pop();
+                                    Fluttertoast.showToast(msg: message);
+                                  });
+                                }else{
+                                  PrefUtils.prefs!.setString('LoginStatus', "true");
+                                  PrefUtils.prefs!.setString("apikey",value.id!);
+                                  _auth.getuserProfile(onsucsess: (value){
+
+                                  },onerror: (){
+
+                                  });
+                                  /*Navigator.pushNamedAndRemoveUntil(
+                                context, HomeScreen.routeName, (route) => false);*/
+                                  Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
+                                  ///navigatev to home page
+                                }
+
+                              },onerror:(message){
+                                Navigator.of(context).pop();
+                                Fluttertoast.showToast(msg: message);
+                              });
                             },
                             child: Material(
                               borderRadius: BorderRadius.circular(4.0),
@@ -1680,12 +1629,12 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: <Widget>[
-                                        SvgPicture.asset(Images.appleImg, width: 25, height: 25,),
+                                        SvgPicture.asset(Images.facebookImg, width: 25, height: 25,),
                                         SizedBox(
                                           width: 15,
                                         ),
                                         Text(
-                                          S .of(context).signin_apple,//"Sign in with Facebook" ,// "Sign in with Facebook",
+                                          S .of(context).sign_in_with_facebook,//"Sign in with Facebook" ,// "Sign in with Facebook",
                                           textAlign: TextAlign.center,
                                           maxLines: 2,
                                           style: TextStyle(fontSize: 16,
@@ -1696,6 +1645,55 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                                         // SizedBox(
                                         //   width: 14,
                                         // ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      if (_isAvailable)
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 28),
+                          child: GestureDetector(
+                            onTap: () {
+                              appleLogIn();
+                            },
+                            child: Material(
+                              borderRadius: BorderRadius.circular(4.0),
+                              elevation: 2,
+                              shadowColor: Colors.grey,
+                              child: Container(
+
+                                padding: EdgeInsets.only(
+                                    left: 10.0, right: 5.0,top:MediaQuery.of(context).size.height/130, bottom:MediaQuery.of(context).size.height/130),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4.0),),
+                                child:
+                                Padding(
+                                  padding: EdgeInsets.only(right:MediaQuery.of(context).size.width/10,//30.0,
+                                    left:MediaQuery.of(context).size.width/12,),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        SvgPicture.asset(Images.appleImg, width: 25, height: 25,),
+                                        //Image.asset(Images.appleImg, width: 20,height: 40,),
+                                        SizedBox(
+                                          width: 14,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            S .of(context).signin_apple,//"Sign in with Apple"  , //"Sign in with Apple",
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            style: TextStyle(fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: ColorCodes.signincolor),
+                                          ),
+                                        )
                                       ],
                                     ),
                                   ),

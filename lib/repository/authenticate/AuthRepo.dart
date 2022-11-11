@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../controller/mutations/cart_mutation.dart';
@@ -26,7 +28,7 @@ class Auth {
 
     _facebookLogin.loginBehavior =
     Platform.isIOS ? FacebookLoginBehavior.webViewOnly : FacebookLoginBehavior
-        .nativeWithFallback;
+        .nativeWithFallback; //FacebookLoginBehavior.webViewOnly; _facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
     final result = await _facebookLogin.logIn(['email']);
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
@@ -65,6 +67,7 @@ class Auth {
       ],
     );
     final response = await _googleSignIn.signIn();
+    // if(response != null)
     response!.authentication.then((value) {
       _isnewUser(response.email).then((value) =>
           returns(AuthData(code: 200,
@@ -87,6 +90,13 @@ class Auth {
 
   Future<AuthData?> phoneNumberAuth(mobile, Function(LoginData, AuthData) otp) async {
     Api api = Api();
+    print("fbvfv"  + {
+      "mobileNumber": mobile,
+      "signature": Vx.isWeb ? "" : await SmsAutoFill().getAppSignature,
+      "tokenId": PrefUtils.prefs!.getString('tokenid')!,
+      "branch": PrefUtils.prefs!.getString("branch")!,
+      "language_code" : IConstants.languageId,
+    }.toString());
     api.body = {
       "mobileNumber": mobile,
       "signature": Vx.isWeb ? "" : await SmsAutoFill().getAppSignature,
@@ -96,7 +106,9 @@ class Auth {
     };
     final response = json.decode(
         await api.Posturl("customer/pre-register"));
-    print("sdfgbnm...."+response["type"].toString() +"...."+response["data"]["otp"].toString());
+    debugPrint("sp........"+PrefUtils.prefs!.getString('ftokenid').toString());
+    debugPrint("response...kiki..." + response["type"].toString() + " " +
+        response/*["data"]*/.toString());
     PrefUtils.prefs!.setString("typenew",  response["type"].toString());
     if (response["type"] == "new") {
       PrefUtils.prefs!.remove("userapikey");
@@ -108,9 +120,7 @@ class Auth {
       otp(LoginData.fromJson(response["data"]), _authresponse);
     } else {
       if(Vx.isWeb){
-        print("fghjkjhg....");
         PrefUtils.prefs!.setString("apikey", response["userID"].toString());
-        PrefUtils.prefs!.setString("userapikey", response["userID"].toString());
         getuserProfile(onsucsess: (value) {
           _authresponse = AuthData(code: 200,
               messege: "Login Success",
@@ -130,12 +140,23 @@ class Auth {
     }
   }
 
-
   ioslogin(Function(AuthData) returns,Function(String) errors)async {
     PrefUtils.prefs!.setString('applesignin', "yes");
+    // _dialogforProcessing();
     PrefUtils.prefs!.setString('skip', "no");
     if (await SignInApple.canUseAppleSigin()) {
+      /// AppleIdUser(name: ,mail: ,userIdentifier: ,authorizationCode: ,identifyToken: )
       SignInApple.handleAppleSignInCallBack(onCompleteWithSignIn: (AppleIdUser? appleidentifier) async {
+        // print("flutter receiveCode: \n");
+        // print(authorizationCode);
+        // print("flutter receiveToken \n");
+        // print(identifyToken);
+        // setState(() {
+        //   _name = name;
+        //   _mail = mail;
+        //   _userIdentify = userIdentifier;
+        //   _authorizationCode = authorizationCode;
+        // });
 
         _isnewUserApple(appleidentifier!.userIdentifier).then((value) => returns(AuthData(code: 200,
             messege: "Login Success",
@@ -167,6 +188,7 @@ class Auth {
             errorMsg = S.current.apple_signin_not_available_forthis_device;
             break;
         }
+        print(errorMsg);
         errors(errorMsg);
       });
       SignInApple.clickAppleSignIn();
@@ -174,10 +196,10 @@ class Auth {
       errors(S.current.apple_signin_not_available_forthis_device);
     }
   }
-
-
   userRegister(RegisterAuthBodyParm body, { required Function onSucsess, onError}) async {
     if(Features.btobModule){
+      // Api api = Api();
+      // api.body = body.toJson();
       var map = FormData.fromMap({
         "username": body.username,
         "email": body.email,
@@ -188,9 +210,9 @@ class Auth {
         "signature" : PrefUtils.prefs!.containsKey("signature") ? PrefUtils.prefs!.getString('signature') : "",
         "referralid": body.referralid,
         "type":PrefUtils.prefs!.getBool('type'),
-        "shop_name":body.shopname,
-        "gst": body.gst,
-        "pincode": body.pincode,
+        "shop_name":body.shopname,//PrefUtils.prefs.getString('shopName'),
+        "gst": body.gst,//PrefUtils.prefs.getString('gst'),
+        "pincode": body.pincode,//PrefUtils.prefs.getString('pincode'),
         if(body.image!.length >0)'image': body.image,
         "device": body.device,
       });
@@ -203,8 +225,11 @@ class Auth {
 
       dio = Dio(options);
       final response = await dio.post("customer/register-b2b", data: map);
+      print("btob module register"+response.toString());
+      //final regresp = json.decode(await api.Posturl("customer/register-b2b"));
       final responseEncode = json.encode(response.data);
       final responseJson = json.decode(responseEncode);
+      debugPrint("status.." + responseJson["status"].toString());
       if (responseJson["status"]) {
         PrefUtils.prefs!.setString('LoginStatus', "true");
         PrefUtils.prefs!.setString("apikey", responseJson["userId"].toString());
@@ -218,6 +243,7 @@ class Auth {
       Api api = Api();
       api.body = body.toJson();
       final regresp = json.decode(await api.Posturl("customer/register"));
+      debugPrint("status.." + regresp["status"].toString());
       if (regresp["status"]) {
         PrefUtils.prefs!.setString('LoginStatus', "true");
         PrefUtils.prefs!.setString("apikey", regresp["userId"].toString());
@@ -229,34 +255,157 @@ class Auth {
     }
   }
 
-  getuserProfile({required Function(UserData) onsucsess,required onerror}) async {
-  if(PrefUtils.prefs!.containsKey("type") && PrefUtils.prefs!.getBool('type')! == false && PrefUtils.prefs!.getString('LoginStatus') == "true") {
-    if (PrefUtils.prefs!.containsKey("apikey")) {
-      Api api = Api();
+  _emailelogin(){
 
-      final resp = UserModle.fromJson(json.decode(await api.Geturl(
-          "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-              "apikey")}&branchtype=${ IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${ IConstants.refIdForMultiVendor}"
-      )));
-      if (resp.status!) {
-        final response = UserModle(status: resp.status,
-            notificationCount: resp.notificationCount,
-            shoppingList: resp.shoppingList,
-            prepaid: resp.prepaid,
-            data: [
-              UserData.fromJson(resp.data!.first.toJson(
-                  branch: PrefUtils.prefs!.getString("branch")))
-            ]);
-        SetUserData(response);
-        onsucsess(UserData.fromJson(resp.data![0].toJson(
-            branch: PrefUtils.prefs!.getString("branch"))));
-      } else {
+  }
+  getuserProfile({required Function(UserData) onsucsess,required onerror}) async {
+    // print("calling get profile api ${PrefUtils.prefs!.containsKey("ftokenid")}");
+    //  print("calling get profile api type ${PrefUtils.prefs!.getBool('type').toString()}");
+    // print("calling get profile api type ${PrefUtils.prefs!.getString('LoginStatus').toString()}");
+    /* if(PrefUtils.prefs!.getBool('type')! == false && PrefUtils.prefs!.getString('LoginStatus') == "true") {
+    PrefUtils.prefs!.setString(
+        'apikey', PrefUtils.prefs!.getString("userapikey").toString());
+    print("log....apikey "+PrefUtils.prefs!.getString("apikey").toString());
+  }*/
+    if(PrefUtils.prefs!.containsKey("type") && PrefUtils.prefs!.getBool('type')! == false && PrefUtils.prefs!.getString('LoginStatus') == "true") {
+      print("if true....");
+      if (PrefUtils.prefs!.containsKey("apikey")) {
+        Api api = Api();
+
+        final resp = UserModle.fromJson(json.decode(await api.Geturl(
+          //(Features.ismultivendor && IConstants.isEnterprise) ?
+            "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+                "apikey")}&branchtype=${ (Features.ismultivendor && IConstants.isEnterprise) ?IConstants.branchtype.toString():""}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${ (Features.ismultivendor && IConstants.isEnterprise) ?IConstants.refIdForMultiVendor:IConstants.refIdForMultiVendor}"
+          /*:"customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+              "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}"*/)));
+        print("get profile respo...."+resp.toString()+"data shopping.."+resp.shoppingList!.length.toString());
+        if (resp.status!) {
+          print('loged user branch...' + resp.data![0].toJson().toString() +
+              "current branch ${PrefUtils.prefs!.getString("branch")}");
+          final response = UserModle(status: resp.status,
+              notificationCount: resp.notificationCount,
+              shoppingList: resp.shoppingList,
+              prepaid: resp.prepaid,
+              data: [
+                UserData.fromJson(resp.data!.first.toJson(
+                    branch: PrefUtils.prefs!.getString("branch")))
+              ]);
+          SetUserData(response);
+          onsucsess(UserData.fromJson(resp.data![0].toJson(
+              branch: PrefUtils.prefs!.getString("branch"))));
+          // return Future.value(UserData.fromJson(resp["data"][0]));
+        } else {
+          api.body = {
+            "token": PrefUtils.prefs!.getString("ftokenid")!,
+            "device": "android",
+            "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
+            "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
+          };
+          var response = json.decode(await api.Posturl(
+              "customer/register/guest/user", isv2: false));
+          PrefUtils.prefs!.setString(
+              "tokenid", response["guestUserId"]/*json.decode(await api.Posturl(
+            "customer/register/guest/user", isv2: false))["guestUserId"]*/);
+          PrefUtils.prefs!.setString(
+              "latitude", response["restaurantLat"]);
+          PrefUtils.prefs!.setString(
+              "longitude", response["restaurantLong"]);
+          PrefUtils.prefs!.setBool("deliverystatus", true);
+          onerror();
+          // return null;
+        }
+      }
+      else {
+        Api api = Api();
+
         api.body = {
           "token": PrefUtils.prefs!.getString("ftokenid")!,
           "device": "android",
-          "branchtype": IConstants.branchtype.toString(),
-          "ref":  IConstants.refIdForMultiVendor,
+          "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
+          "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
         };
+        var response = json.decode(await api.Posturl(
+            "customer/register/guest/user", isv2: false));
+        PrefUtils.prefs!.setString(
+            "tokenid", response["guestUserId"]);
+        PrefUtils.prefs!.setString(
+            "latitude", response["restaurantLat"]);
+        PrefUtils.prefs!.setString(
+            "longitude", response["restaurantLong"]);
+        PrefUtils.prefs!.setBool("deliverystatus", true);
+        debugPrint("tokenid..." + PrefUtils.prefs!.getString("ftokenid")!);
+
+        /*PrefUtils.prefs!.setString("tokenid", (json.decode(await api.Posturl(
+          "customer/register/guest/user", isv2: false))["guestUserId"])
+          .toString());
+      debugPrint("tokenid..." + PrefUtils.prefs!.getString("tokenid")!);*/
+
+        onerror();
+      }
+      // else {
+      //   PrefUtils.prefs!.setString("tokenid", json.decode(await api.Geturl("url"))["guestUserId"]);
+      //  }
+    }
+    else{
+      print("else true....");
+      if (PrefUtils.prefs!.containsKey("apikey")) {
+        Api api = Api();
+
+        final resp = UserModle.fromJson(json.decode(await api.Geturl(
+
+            (Features.ismultivendor && IConstants.isEnterprise) ?
+            "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+                "apikey")}&branchtype=${IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${IConstants.refIdForMultiVendor}"
+                : "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+                "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));
+
+
+        /*"customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+              "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));*/
+        if (resp.status!) {
+          print('loged user branch...' + resp.data![0].toJson().toString() +
+              "current branch ${PrefUtils.prefs!.getString("branch")}");
+          final response = UserModle(status: resp.status,
+              notificationCount: resp.notificationCount,
+              prepaid: resp.prepaid,
+              shoppingList: resp.shoppingList,
+              data: [
+                UserData.fromJson(resp.data!.first.toJson(
+                    branch: PrefUtils.prefs!.getString("branch")))
+              ]);
+          SetUserData(response);
+          onsucsess(UserData.fromJson(resp.data![0].toJson(
+              branch: PrefUtils.prefs!.getString("branch"))));
+          // return Future.value(UserData.fromJson(resp["data"][0]));
+        } else {
+          api.body = {
+            "token": PrefUtils.prefs!.getString("ftokenid")!,
+            "device": "android"
+          };
+          PrefUtils.prefs!.setString(
+              "tokenid", json.decode(await api.Posturl(
+              "customer/register/guest/user", isv2: false))["guestUserId"]);
+          onerror();
+          // return null;
+        }
+      }
+      else {
+        Api api = Api();
+
+        api.body = {
+          "token": PrefUtils.prefs!.getString("ftokenid")!,
+          "device": "android",
+          "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
+          "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
+        };
+/*
+      PrefUtils.prefs!.setString("tokenid", (json.decode(await api.Posturl(
+          "customer/register/guest/user", isv2: false))["guestUserId"])
+          .toString());
+      VxState.store!.userData.membership =  "0";
+      debugPrint("tokenid..." + PrefUtils.prefs!.getString("tokenid")!);
+
+      onerror();*/
         var response = json.decode(await api.Posturl(
             "customer/register/guest/user", isv2: false));
         PrefUtils.prefs!.setString(
@@ -269,85 +418,11 @@ class Auth {
         onerror();
       }
     }
-    else {
-      Api api = Api();
-
-      api.body = {
-        "token": PrefUtils.prefs!.getString("ftokenid")!,
-        "device": "android",
-        "branchtype":IConstants.branchtype.toString(),
-        "ref": IConstants.refIdForMultiVendor ,
-      };
-      var response = json.decode(await api.Posturl(
-          "customer/register/guest/user", isv2: false));
-      PrefUtils.prefs!.setString(
-          "tokenid", response["guestUserId"]);
-      PrefUtils.prefs!.setString(
-          "latitude", response["restaurantLat"]);
-      PrefUtils.prefs!.setString(
-          "longitude", response["restaurantLong"]);
-      PrefUtils.prefs!.setBool("deliverystatus", true);
-      onerror();
-    }
-  }
-  else{
-    if (PrefUtils.prefs!.containsKey("apikey")) {
-      Api api = Api();
-
-      final resp = UserModle.fromJson(json.decode(await api.Geturl(
-          // (Features.ismultivendor && IConstants.isEnterprise) ?
-          "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-              "apikey")}&branchtype=${IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${IConstants.refIdForMultiVendor}")));
-              // : "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-              // "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));
-      if (resp.status!) {
-        final response = UserModle(status: resp.status,
-            notificationCount: resp.notificationCount,
-            prepaid: resp.prepaid,
-            shoppingList: resp.shoppingList,
-            data: [
-              UserData.fromJson(resp.data!.first.toJson(
-                  branch: PrefUtils.prefs!.getString("branch")))
-            ]);
-        SetUserData(response);
-        onsucsess(UserData.fromJson(resp.data![0].toJson(
-            branch: PrefUtils.prefs!.getString("branch"))));
-      } else {
-        api.body = {
-          "token": PrefUtils.prefs!.getString("ftokenid")!,
-          "device": "android"
-        };
-        PrefUtils.prefs!.setString(
-            "tokenid", json.decode(await api.Posturl(
-            "customer/register/guest/user", isv2: false))["guestUserId"]);
-        onerror();
-      }
-    }
-    else {
-      Api api = Api();
-
-      api.body = {
-        "token": PrefUtils.prefs!.getString("ftokenid")!,
-        "device": "android",
-        "branchtype": IConstants.branchtype.toString(),
-        "ref": IConstants.refIdForMultiVendor,
-      };
-      var response = json.decode(await api.Posturl(
-          "customer/register/guest/user", isv2: false));
-      PrefUtils.prefs!.setString(
-          "tokenid", response["guestUserId"]);
-      PrefUtils.prefs!.setString(
-          "latitude", response["restaurantLat"]);
-      PrefUtils.prefs!.setString(
-          "longitude", response["restaurantLong"]);
-      PrefUtils.prefs!.setBool("deliverystatus", true);
-      onerror();
-    }
-  }
   }
 
   Future<String> getuserNotificationCount(apikey) async {
     Api api = Api();
+    print("userid $apikey");
     return Future.value(json.decode(await api.Geturl(
         "customer/get-profile?apiKey=$apikey&branch=${PrefUtils.prefs!.getString("branch")}"))["notification_count"]);
   }
@@ -358,7 +433,7 @@ class Auth {
       "email": email,
       "tokenId": PrefUtils.prefs!.getString('ftokenid')!,
     };
-    var _url = await api.Posturl("customer/email-login");
+    var _url = await api.Posturl(/*"customer/email-check"*/"customer/email-login");
     var value = EmailResponse.fromJson(json.decode(_url));
     if(value.status! && value.type == "old"){
       PrefUtils.prefs!.setString("apikey", value.apikey!);
@@ -368,14 +443,26 @@ class Auth {
         SetCartItem(CartTask.fetch ,onloade: (value){});
       }, onerror: {
       });
+      //});
     }
+    debugPrint("v l u e . . . . ." + value.apikey.toString());
     return value;
   }
-  Future<EmailResponse> _isnewUserApple(String appleid) async {
+  /*Future<EmailResponse> _isnewUser(String email) async {
     Api api = Api();
     api.body = {
+      "email": email,
+      "tokenId": PrefUtils.prefs!.getString('ftokenid')!,
+    };
+    var _url = await api.Posturl("customer/email-check");
+    return EmailResponse.fromJson(json.decode(_url));
+  }*/
+  Future<EmailResponse> _isnewUserApple(String appleid) async {
+    Api api = Api();
+
+    api.body = {
       "email":appleid,
-    "tokenId":PrefUtils.prefs!.getString("ftokenid")!
+      "tokenId":PrefUtils.prefs!.getString("ftokenid")!
     };
     return EmailResponse.fromJson(json.decode(
         await api.Posturl("customer/email-login")));
@@ -458,7 +545,7 @@ class RegisterAuthBodyParm {
         required this.referralid,
         required this.mobileNumber,
         required this.device,
-      required this.ref,
+        required this.ref,
         required this.branchtype,
         this.shopname,
         this.pincode,
@@ -499,11 +586,11 @@ class RegisterAuthBodyParm {
     data['mobileNumber'] = this.mobileNumber!;
     data['ref'] = this.ref!;
     data['branchtype'] = this.branchtype!;
-    data['shop_name'] = this.shopname.toString();
-    data['pincode'] = this.pincode.toString();
-    data['gst'] = this.gst.toString();
-    data['image'] = this.image.toString();
-    data['language_code'] = this.language_code!;
+    data['shop_name'] = shopname ?? '';
+    data['pincode'] = this.pincode ?? '';
+    data['gst'] = this.gst ?? '';
+    data['image'] = this.image ?? '';
+    data['language_code'] = this.language_code ?? '';
     return data;
   }
 }

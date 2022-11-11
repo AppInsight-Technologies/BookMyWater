@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../controller/mutations/address_mutation.dart';
 import 'package:sign_in_apple/apple_id_user.dart';
+import '../../constants/features.dart';
 import '../../models/VxModels/VxStore.dart';
 import '../../models/newmodle/user.dart';
 import '../../repository/authenticate/AuthRepo.dart';
@@ -29,7 +30,12 @@ class UserAppAuth {
       case AuthPlatform.google:
         _auth.googleLogin((value){
           if(value.status){
-            if(!value.data.newuser);
+            if(!value.data.newuser){
+              PrefUtils.prefs!.setBool('type', value.data!.newuser!);
+            }
+            else{
+              PrefUtils.prefs!.setBool('type', false);
+            }
             onSucsess(value.data,null);
           }else{
             onerror(value.messege);
@@ -37,18 +43,23 @@ class UserAppAuth {
         });
         // TODO: Handle this case.
         break;
-    // case AuthPlatform.facebook:
-    //   _auth.facebookLogin((value){
-    //     print("fb error log..."+value.messege.toString());
-    //     if(value.status){
-    //       if(!value.data.newuser)
-    //         onSucsess(value.data,null);
-    //     }else{
-    //       onerror(value.messege);
-    //     }
-    //   });
-    //   // TODO: Handle this case.
-    //   break;
+      case AuthPlatform.facebook:
+        _auth.facebookLogin((value){
+          print("fb error log..."+value.messege.toString());
+          if(value.status){
+            if(!value.data.newuser){
+              PrefUtils.prefs!.setBool('type', value.data!.newuser!);
+            }
+            else{
+              PrefUtils.prefs!.setBool('type', false);
+            }
+            onSucsess(value.data,null);
+          }else{
+            onerror(value.messege);
+          }
+        });
+        // TODO: Handle this case.
+        break;
       case AuthPlatform.phone:
         LoginData otpk;
         debugPrint("otp hi...");
@@ -60,8 +71,11 @@ class UserAppAuth {
             if(value.data!.newuser!) {
               debugPrint("type new.....");
               PrefUtils.prefs!.setBool('type', value.data!.newuser!);
-            } if(!value.data!.newuser!)
-              PrefUtils.prefs!.setString("apikey", value.data!.id!);
+            }else
+            {
+              // PrefUtils.prefs!.setString("apikey", value.data!.id!);
+              PrefUtils.prefs!.setBool('type', false);
+            }
             // print("your api key: "+PrefUtils.prefs!.getString("apikey"));
             onSucsess(value.data!,otpk);
           }else{
@@ -72,16 +86,11 @@ class UserAppAuth {
         // TODO: Handle this case.
         break;
       case AuthPlatform.ios:
-      // PrefUtils.prefs!.setBool("ioslogedin", false);
-        print("ios ${PrefUtils.prefs!.getBool("ioslogedin")}");
-        if(!(PrefUtils.prefs!.getBool("ioslogedin")??false))
-          _auth.ioslogin(( AuthData result){
-            PrefUtils.prefs!.setBool("ioslogedin", true);
-            onSucsess(result.data,null);
-          },(String error){
-            PrefUtils.prefs!.setBool("ioslogedin", false);
-            onerror(error);
-          });
+        _auth.ioslogin(( result){
+          onSucsess(result);
+        },(String error){
+          onerror(error);
+        });
         // TODO: Handle this case.
         break;
     }
@@ -104,12 +113,14 @@ class SetUserData extends VxMutation<GroceStore> {
     store!.notificationCount = data.notificationCount;
     store!.userData = data.data!.first;
     store!.prepaid = data.prepaid!.first;
-    store!.userData.delevrystatus = true;
     store!.ShoppingList = data.shoppingList!;
+    store!.userData.delevrystatus = true;
     if(data.data!.first.area.toString() == "null" || data.data!.first.area == "") {
       //For new users area is not there at that time we need to check delivery location is there or not.
       // If exists we need to add deliverylocation otherwise we need to resturant location details.
+      print("deliver location login.dart...."+PrefUtils.prefs!.getString("restaurant_location").toString());
       if(PrefUtils.prefs!.containsKey("deliverylocation")) {
+        print("deliver location login.dart....1..");
         SetPrimeryLocation(CurrentLocation(
             LatLng(double.parse(PrefUtils.prefs!.getString("latitude")!),
                 double.parse(PrefUtils.prefs!.getString("longitude")!)),
@@ -118,6 +129,7 @@ class SetUserData extends VxMutation<GroceStore> {
             true,
             PrefUtils.prefs!.getString("branch")??"999"));
       } else {
+        print("deliver location login.dart....2..");
         SetPrimeryLocation(CurrentLocation(
             LatLng(double.parse(PrefUtils.prefs!.getString("restaurant_lat")!),
                 double.parse(PrefUtils.prefs!.getString("restaurant_long")!)),
@@ -129,7 +141,7 @@ class SetUserData extends VxMutation<GroceStore> {
     } else {
       PrefUtils.prefs!.setString("deliverylocation", data.data!.first.area!);
       print("branch inside ${data.data!.first.branch!}");
-      PrefUtils.prefs!.setString("branch", data.data!.first.branch!);
+      if(!Features.ismultivendor) PrefUtils.prefs!.setString("branch", data.data!.first.branch!);
       PrefUtils.prefs!.setString("latitude", data.data!.first.latitude!);
       PrefUtils.prefs!.setString("longitude", data.data!.first.longitude!);
     }
