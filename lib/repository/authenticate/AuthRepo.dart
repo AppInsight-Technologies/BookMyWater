@@ -25,13 +25,19 @@ class Auth {
 
   Future<AuthData> facebookLogin(returns) async {
     final _facebookLogin = FacebookLogin();
-
+    debugPrint("jhgfghj12...1..");
     _facebookLogin.loginBehavior =
-    Platform.isIOS ? FacebookLoginBehavior.webViewOnly : FacebookLoginBehavior
+    /*Platform.isIOS ? FacebookLoginBehavior.webViewOnly :*/ FacebookLoginBehavior
         .nativeWithFallback; //FacebookLoginBehavior.webViewOnly; _facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
-    final result = await _facebookLogin.logIn(['email']);
+    debugPrint("jhgfghj12...5..");
+
+    //final result = await FacebookLogin().logInWithReadPermissions(['email']);
+    final result = await FacebookLogin().logIn(['email']);
+
+    debugPrint("jhgfghj12...6.."+result.toString());
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
+        debugPrint("jhgfghj12...2..");
         final response = await http.get(
             'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,picture,email&access_token=${result
                 .accessToken.token}');
@@ -47,11 +53,13 @@ class Auth {
         // TODO: Handle this case.
         break;
       case FacebookLoginStatus.cancelledByUser:
+        debugPrint("jhgfghj12...3..");
         _authresponse = returns(AuthData(
             code: 200, messege: "Login Canceled by User", status: false));
         // TODO: Handle this case.
         break;
       case FacebookLoginStatus.error:
+        debugPrint("jhgfghj12...4..");
         _authresponse = returns(
             AuthData(code: 200, messege: result.errorMessage, status: false));
         // TODO: Handle this case.

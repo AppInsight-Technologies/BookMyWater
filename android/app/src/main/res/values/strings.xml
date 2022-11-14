@@ -3,6 +3,7 @@
     <string name="default_notification_channel_id">com.bookmywater.store.default</string>
     <string name="app_name">Mywater</string>
     <string name="facebook_app_id">1128440188099210</string>
+    <string name="facebook_client_token">5dc5f8ff0a55e17f921437422dd9bfb4</string>
     <string name="fb_login_protocol_scheme">fb1128440188099210</string>
     <string name="freshchat_file_provider_authority">com.bookmywater.store.provider</string>
 </resources>
