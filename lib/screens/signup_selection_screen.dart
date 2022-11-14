@@ -365,12 +365,18 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
   }
 
   void initiateFacebookLogin() async {
+    debugPrint("jhgfghj...");
     final facebookLogin = FacebookLogin();
-    facebookLogin.loginBehavior =  Platform.isIOS ? FacebookLoginBehavior.webViewOnly : FacebookLoginBehavior.nativeOnly;//FacebookLoginBehavior.webViewOnly; facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
+    facebookLogin.loginBehavior =  Platform.isIOS ? FacebookLoginBehavior.webViewOnly :
+    FacebookLoginBehavior.nativeOnly;//FacebookLoginBehavior.webViewOnly; facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
+    debugPrint("jhgfghj...1...");
+   // final result = await facebookLogin.logInWithReadPermissions(['email']);
     final result = await facebookLogin.logIn(['email']);
 
     switch (result.status) {
+
       case FacebookLoginStatus.error:
+        debugPrint("jhgfghj...2..");
         if(Features.isfacebookappevent)
           FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
         Navigator.of(context).pop();
@@ -384,6 +390,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         //onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.cancelledByUser:
+        debugPrint("jhgfghj...3..");
         Navigator.of(context).pop();
         if(Platform.isIOS)FocusManager.instance.primaryFocus!.unfocus();
         Fluttertoast.showToast(
@@ -395,6 +402,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         //onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.loggedIn:
+        debugPrint("jhgfghj...4..");
         if(Features.isfacebookappevent)
           FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
         final token = result.accessToken.token;
@@ -822,8 +830,10 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
   }
 
   Future<void> facebooklogin() async {
+    debugPrint("jhgfghj...7..");
     PrefUtils.prefs!.setString('skip', "no");
     PrefUtils.prefs!.setString('applesignin', "no");
+    debugPrint("jhgfghj...6..");
     initiateFacebookLogin();
   }
 
