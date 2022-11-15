@@ -10,8 +10,13 @@ PODS:
   - connectivity (0.0.1):
     - Flutter
     - Reachability
+  - facebook_app_events (0.0.1):
+    - FBAudienceNetwork (~> 6.9.0)
+    - FBSDKCoreKit (~> 12.3.1)
+    - Flutter
   - FBAEMKit (12.3.2):
     - FBSDKCoreKit_Basics (= 12.3.2)
+  - FBAudienceNetwork (6.9.0)
   - FBSDKCoreKit (12.3.2):
     - FBAEMKit (= 12.3.2)
     - FBSDKCoreKit_Basics (= 12.3.2)
@@ -268,6 +273,7 @@ PODS:
 DEPENDENCIES:
   - cashfree_pg (from `.symlinks/plugins/cashfree_pg/ios`)
   - connectivity (from `.symlinks/plugins/connectivity/ios`)
+  - facebook_app_events (from `.symlinks/plugins/facebook_app_events/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
@@ -308,6 +314,7 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - FBAEMKit
+    - FBAudienceNetwork
     - FBSDKCoreKit
     - FBSDKCoreKit_Basics
     - FBSDKLoginKit
@@ -343,6 +350,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cashfree_pg/ios"
   connectivity:
     :path: ".symlinks/plugins/connectivity/ios"
+  facebook_app_events:
+    :path: ".symlinks/plugins/facebook_app_events/ios"
   firebase_analytics:
     :path: ".symlinks/plugins/firebase_analytics/ios"
   firebase_core:
@@ -418,7 +427,9 @@ SPEC CHECKSUMS:
   AppAuth: 8fca6b5563a5baef2c04bee27538025e4ceb2add
   cashfree_pg: 4d216897f5b81020f5be03de34363d4539600b07
   connectivity: c4130b2985d4ef6fd26f9702e886bd5260681467
+  facebook_app_events: c163d2f1e9f08e91b452f2cc2865836c7d2712dc
   FBAEMKit: 955ca52eba8219c20f90774e8c6ff8bc7b3192a3
+  FBAudienceNetwork: 83096d73433759c10f9cf9b3bad5e5cff58694cb
   FBSDKCoreKit: 678f64eda3f0ff25c189c2ebbfe87b1d96a85a6d
   FBSDKCoreKit_Basics: 6bee7c1f0932432901781203fa5e587ec5099148
   FBSDKLoginKit: 56d55e23fe66a6db045826190b0b4dbc0e1ca0a0

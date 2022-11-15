@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
+//web
+//import 'package:flutter_facebook_login_web/flutter_facebook_login_web.dart';
+//app
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../controller/mutations/cart_mutation.dart';
@@ -19,47 +21,61 @@ import "package:http/http.dart" as http;
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:dio/dio.dart';
 import 'package:velocity_x/velocity_x.dart';
-
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: <String>[
+    'email', /*'https://www.googleapis.com/auth/contacts.readonly',*/
+  ],
+);
 class Auth {
   var _authresponse;
 
   Future<AuthData> facebookLogin(returns) async {
-    final _facebookLogin = FacebookLogin();
-    debugPrint("jhgfghj12...1..");
+    //web
+    // final facebookSignIn = FacebookLoginWeb();
+    // final result = await facebookSignIn.logIn(['email']);
+//app
+     final _facebookLogin = FacebookLogin();
+
     _facebookLogin.loginBehavior =
-    /*Platform.isIOS ? FacebookLoginBehavior.webViewOnly :*/ FacebookLoginBehavior
-        .nativeWithFallback; //FacebookLoginBehavior.webViewOnly; _facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
-    debugPrint("jhgfghj12...5..");
-
-    //final result = await FacebookLogin().logInWithReadPermissions(['email']);
-    final result = await FacebookLogin().logIn(['email']);
-
-    debugPrint("jhgfghj12...6.."+result.toString());
+    Platform.isIOS ? FacebookLoginBehavior.webViewOnly : FacebookLoginBehavior
+        .nativeWithFallback;
+      final result = await _facebookLogin.logIn(['email']);
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
-        debugPrint("jhgfghj12...2..");
-        final response = await http.get(
-            'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,picture,email&access_token=${result
-                .accessToken.token}');
+      //APP
+          final response = await http.get(
+              'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,picture,email&access_token=${result
+                  .accessToken.token}');
 
-        Map<String, dynamic> map = json.decode(response.body);
+          Map<String, dynamic> map = json.decode(response.body);
 
-        _isnewUser(map["email"]).then((value) {
-          _authresponse = returns(AuthData(code: response.statusCode,
-              messege: "Login Success",
-              status: true,
-              data: SocialAuthUser.fromJson(SocialAuthUser.fromJson(map).toJson(newuser: value.type=="old"?false:true,id: value.apikey))));
-        });
+          _isnewUser(map["email"]).then((value) {
+            _authresponse = returns(AuthData(code: response.statusCode,
+                messege: "Login Success",
+                status: true,
+                data: SocialAuthUser.fromJson(SocialAuthUser.fromJson(map).toJson(newuser: value.type=="old"?false:true,id: value.apikey))));
+          });
+
+      // web
+
+        // final token = result.accessToken.token;
+        // final graphResponse = await http.get(
+        //     'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,picture,email&access_token=${token}');
+        // Map<String, dynamic> map = json.decode(graphResponse.body);
+        // _isnewUser(map["email"]).then((value) {
+        //   _authresponse = returns(AuthData(code: graphResponse.statusCode,
+        //       messege: "Login Success",
+        //       status: true,
+        //       data: SocialAuthUser.fromJson(SocialAuthUser.fromJson(map).toJson(newuser: value.type=="old"?false:true,id: value.apikey))));
+        // });
         // TODO: Handle this case.
         break;
       case FacebookLoginStatus.cancelledByUser:
-        debugPrint("jhgfghj12...3..");
         _authresponse = returns(AuthData(
             code: 200, messege: "Login Canceled by User", status: false));
         // TODO: Handle this case.
         break;
       case FacebookLoginStatus.error:
-        debugPrint("jhgfghj12...4..");
         _authresponse = returns(
             AuthData(code: 200, messege: result.errorMessage, status: false));
         // TODO: Handle this case.
@@ -69,13 +85,7 @@ class Auth {
   }
 
   Future<AuthData> googleLogin(returns) async {
-    GoogleSignIn _googleSignIn = GoogleSignIn(
-      scopes: <String>[
-        'email', /*'https://www.googleapis.com/auth/contacts.readonly',*/
-      ],
-    );
     final response = await _googleSignIn.signIn();
-    // if(response != null)
     response!.authentication.then((value) {
       _isnewUser(response.email).then((value) =>
           returns(AuthData(code: 200,
@@ -98,26 +108,18 @@ class Auth {
 
   Future<AuthData?> phoneNumberAuth(mobile, Function(LoginData, AuthData) otp) async {
     Api api = Api();
-    print("fbvfv"  + {
-      "mobileNumber": mobile,
-      "signature": Vx.isWeb ? "" : await SmsAutoFill().getAppSignature,
-      "tokenId": PrefUtils.prefs!.getString('tokenid')!,
-      "branch": PrefUtils.prefs!.getString("branch")!,
-      "language_code" : IConstants.languageId,
-    }.toString());
     api.body = {
       "mobileNumber": mobile,
       "signature": Vx.isWeb ? "" : await SmsAutoFill().getAppSignature,
-      "tokenId": PrefUtils.prefs!.getString('ftokenid')!,
+      "tokenId": PrefUtils.prefs!.getString('ftokenid').toString(),
       "branch": IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor:PrefUtils.prefs!.getString("branch")!,
       "language_code" : IConstants.languageId,
     };
     final response = json.decode(
         await api.Posturl("customer/pre-register"));
-    debugPrint("sp........"+PrefUtils.prefs!.getString('ftokenid').toString());
-    debugPrint("response...kiki..." + response["type"].toString() + " " +
-        response/*["data"]*/.toString());
+    print("sdfgbnm...."+response["type"].toString()+"oypppp.."+response["data"]["otp"].toString());
     PrefUtils.prefs!.setString("typenew",  response["type"].toString());
+    PrefUtils.prefs!.setString("typenewpromo",  response["type"].toString());
     if (response["type"] == "new") {
       PrefUtils.prefs!.remove("userapikey");
       PrefUtils.prefs!.setString("Otp", response["data"]["otp"].toString());
@@ -129,6 +131,7 @@ class Auth {
     } else {
       if(Vx.isWeb){
         PrefUtils.prefs!.setString("apikey", response["userID"].toString());
+        PrefUtils.prefs!.setString("userapikey", response["userID"].toString());
         getuserProfile(onsucsess: (value) {
           _authresponse = AuthData(code: 200,
               messege: "Login Success",
@@ -148,23 +151,12 @@ class Auth {
     }
   }
 
+
   ioslogin(Function(AuthData) returns,Function(String) errors)async {
     PrefUtils.prefs!.setString('applesignin', "yes");
-    // _dialogforProcessing();
     PrefUtils.prefs!.setString('skip', "no");
     if (await SignInApple.canUseAppleSigin()) {
-      /// AppleIdUser(name: ,mail: ,userIdentifier: ,authorizationCode: ,identifyToken: )
       SignInApple.handleAppleSignInCallBack(onCompleteWithSignIn: (AppleIdUser? appleidentifier) async {
-        // print("flutter receiveCode: \n");
-        // print(authorizationCode);
-        // print("flutter receiveToken \n");
-        // print(identifyToken);
-        // setState(() {
-        //   _name = name;
-        //   _mail = mail;
-        //   _userIdentify = userIdentifier;
-        //   _authorizationCode = authorizationCode;
-        // });
 
         _isnewUserApple(appleidentifier!.userIdentifier).then((value) => returns(AuthData(code: 200,
             messege: "Login Success",
@@ -196,7 +188,6 @@ class Auth {
             errorMsg = S.current.apple_signin_not_available_forthis_device;
             break;
         }
-        print(errorMsg);
         errors(errorMsg);
       });
       SignInApple.clickAppleSignIn();
@@ -204,10 +195,10 @@ class Auth {
       errors(S.current.apple_signin_not_available_forthis_device);
     }
   }
+
+
   userRegister(RegisterAuthBodyParm body, { required Function onSucsess, onError}) async {
     if(Features.btobModule){
-      // Api api = Api();
-      // api.body = body.toJson();
       var map = FormData.fromMap({
         "username": body.username,
         "email": body.email,
@@ -218,9 +209,9 @@ class Auth {
         "signature" : PrefUtils.prefs!.containsKey("signature") ? PrefUtils.prefs!.getString('signature') : "",
         "referralid": body.referralid,
         "type":PrefUtils.prefs!.getBool('type'),
-        "shop_name":body.shopname,//PrefUtils.prefs.getString('shopName'),
-        "gst": body.gst,//PrefUtils.prefs.getString('gst'),
-        "pincode": body.pincode,//PrefUtils.prefs.getString('pincode'),
+        "shop_name":body.shopname,
+        "gst": body.gst,
+        "pincode": body.pincode,
         if(body.image!.length >0)'image': body.image,
         "device": body.device,
       });
@@ -233,11 +224,8 @@ class Auth {
 
       dio = Dio(options);
       final response = await dio.post("customer/register-b2b", data: map);
-      print("btob module register"+response.toString());
-      //final regresp = json.decode(await api.Posturl("customer/register-b2b"));
       final responseEncode = json.encode(response.data);
       final responseJson = json.decode(responseEncode);
-      debugPrint("status.." + responseJson["status"].toString());
       if (responseJson["status"]) {
         PrefUtils.prefs!.setString('LoginStatus', "true");
         PrefUtils.prefs!.setString("apikey", responseJson["userId"].toString());
@@ -248,10 +236,13 @@ class Auth {
       }
     }
     else {
+      debugPrint("new user.....dd...");
       Api api = Api();
       api.body = body.toJson();
+      debugPrint("new user.....ff...");
       final regresp = json.decode(await api.Posturl("customer/register"));
-      debugPrint("status.." + regresp["status"].toString());
+      debugPrint("new user.....gg...");
+      debugPrint("new user.....ee..."+regresp.toString());
       if (regresp["status"]) {
         PrefUtils.prefs!.setString('LoginStatus', "true");
         PrefUtils.prefs!.setString("apikey", regresp["userId"].toString());
@@ -263,33 +254,16 @@ class Auth {
     }
   }
 
-  _emailelogin(){
-
-  }
   getuserProfile({required Function(UserData) onsucsess,required onerror}) async {
-    // print("calling get profile api ${PrefUtils.prefs!.containsKey("ftokenid")}");
-    //  print("calling get profile api type ${PrefUtils.prefs!.getBool('type').toString()}");
-    // print("calling get profile api type ${PrefUtils.prefs!.getString('LoginStatus').toString()}");
-    /* if(PrefUtils.prefs!.getBool('type')! == false && PrefUtils.prefs!.getString('LoginStatus') == "true") {
-    PrefUtils.prefs!.setString(
-        'apikey', PrefUtils.prefs!.getString("userapikey").toString());
-    print("log....apikey "+PrefUtils.prefs!.getString("apikey").toString());
-  }*/
     if(PrefUtils.prefs!.containsKey("type") && PrefUtils.prefs!.getBool('type')! == false && PrefUtils.prefs!.getString('LoginStatus') == "true") {
-      print("if true....");
       if (PrefUtils.prefs!.containsKey("apikey")) {
         Api api = Api();
 
         final resp = UserModle.fromJson(json.decode(await api.Geturl(
-          //(Features.ismultivendor && IConstants.isEnterprise) ?
             "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-                "apikey")}&branchtype=${ (Features.ismultivendor && IConstants.isEnterprise) ?IConstants.branchtype.toString():""}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${ (Features.ismultivendor && IConstants.isEnterprise) ?IConstants.refIdForMultiVendor:IConstants.refIdForMultiVendor}"
-          /*:"customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-              "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}"*/)));
-        print("get profile respo...."+resp.toString()+"data shopping.."+resp.shoppingList!.length.toString());
+                "apikey")}&branchtype=${ IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${ IConstants.refIdForMultiVendor}"
+        )));
         if (resp.status!) {
-          print('loged user branch...' + resp.data![0].toJson().toString() +
-              "current branch ${PrefUtils.prefs!.getString("branch")}");
           final response = UserModle(status: resp.status,
               notificationCount: resp.notificationCount,
               shoppingList: resp.shoppingList,
@@ -301,26 +275,23 @@ class Auth {
           SetUserData(response);
           onsucsess(UserData.fromJson(resp.data![0].toJson(
               branch: PrefUtils.prefs!.getString("branch"))));
-          // return Future.value(UserData.fromJson(resp["data"][0]));
         } else {
           api.body = {
             "token": PrefUtils.prefs!.getString("ftokenid")!,
             "device": "android",
-            "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
-            "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
+            "branchtype": IConstants.branchtype.toString(),
+            "ref": IConstants.refIdForMultiVendor ,
           };
           var response = json.decode(await api.Posturl(
               "customer/register/guest/user", isv2: false));
           PrefUtils.prefs!.setString(
-              "tokenid", response["guestUserId"]/*json.decode(await api.Posturl(
-            "customer/register/guest/user", isv2: false))["guestUserId"]*/);
+              "tokenid", response["guestUserId"]);
           PrefUtils.prefs!.setString(
               "latitude", response["restaurantLat"]);
           PrefUtils.prefs!.setString(
               "longitude", response["restaurantLong"]);
           PrefUtils.prefs!.setBool("deliverystatus", true);
           onerror();
-          // return null;
         }
       }
       else {
@@ -329,8 +300,8 @@ class Auth {
         api.body = {
           "token": PrefUtils.prefs!.getString("ftokenid")!,
           "device": "android",
-          "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
-          "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
+          "branchtype": IConstants.branchtype.toString() ,
+          "ref":  IConstants.refIdForMultiVendor ,
         };
         var response = json.decode(await api.Posturl(
             "customer/register/guest/user", isv2: false));
@@ -341,38 +312,20 @@ class Auth {
         PrefUtils.prefs!.setString(
             "longitude", response["restaurantLong"]);
         PrefUtils.prefs!.setBool("deliverystatus", true);
-        debugPrint("tokenid..." + PrefUtils.prefs!.getString("ftokenid")!);
-
-        /*PrefUtils.prefs!.setString("tokenid", (json.decode(await api.Posturl(
-          "customer/register/guest/user", isv2: false))["guestUserId"])
-          .toString());
-      debugPrint("tokenid..." + PrefUtils.prefs!.getString("tokenid")!);*/
-
         onerror();
       }
-      // else {
-      //   PrefUtils.prefs!.setString("tokenid", json.decode(await api.Geturl("url"))["guestUserId"]);
-      //  }
     }
     else{
-      print("else true....");
       if (PrefUtils.prefs!.containsKey("apikey")) {
         Api api = Api();
 
         final resp = UserModle.fromJson(json.decode(await api.Geturl(
-
-            (Features.ismultivendor && IConstants.isEnterprise) ?
+          // (Features.ismultivendor && IConstants.isEnterprise) ?
             "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-                "apikey")}&branchtype=${IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${IConstants.refIdForMultiVendor}"
-                : "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-                "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));
-
-
-        /*"customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
-              "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));*/
+                "apikey")}&branchtype=${IConstants.branchtype.toString()}&branch=${PrefUtils.prefs!.getString("branch")}&ref=${IConstants.refIdForMultiVendor}")));
+        // : "customer/get-profile?apiKey=${PrefUtils.prefs!.getString(
+        // "apikey")}&branch=${PrefUtils.prefs!.getString("branch")}")));
         if (resp.status!) {
-          print('loged user branch...' + resp.data![0].toJson().toString() +
-              "current branch ${PrefUtils.prefs!.getString("branch")}");
           final response = UserModle(status: resp.status,
               notificationCount: resp.notificationCount,
               prepaid: resp.prepaid,
@@ -384,7 +337,6 @@ class Auth {
           SetUserData(response);
           onsucsess(UserData.fromJson(resp.data![0].toJson(
               branch: PrefUtils.prefs!.getString("branch"))));
-          // return Future.value(UserData.fromJson(resp["data"][0]));
         } else {
           api.body = {
             "token": PrefUtils.prefs!.getString("ftokenid")!,
@@ -394,7 +346,6 @@ class Auth {
               "tokenid", json.decode(await api.Posturl(
               "customer/register/guest/user", isv2: false))["guestUserId"]);
           onerror();
-          // return null;
         }
       }
       else {
@@ -403,17 +354,9 @@ class Auth {
         api.body = {
           "token": PrefUtils.prefs!.getString("ftokenid")!,
           "device": "android",
-          "branchtype": (Features.ismultivendor) ? IConstants.branchtype.toString() : "",
-          "ref": (Features.ismultivendor) ? IConstants.refIdForMultiVendor : "",
+          "branchtype": IConstants.branchtype.toString() ,
+          "ref": IConstants.refIdForMultiVendor ,
         };
-/*
-      PrefUtils.prefs!.setString("tokenid", (json.decode(await api.Posturl(
-          "customer/register/guest/user", isv2: false))["guestUserId"])
-          .toString());
-      VxState.store!.userData.membership =  "0";
-      debugPrint("tokenid..." + PrefUtils.prefs!.getString("tokenid")!);
-
-      onerror();*/
         var response = json.decode(await api.Posturl(
             "customer/register/guest/user", isv2: false));
         PrefUtils.prefs!.setString(
@@ -430,7 +373,6 @@ class Auth {
 
   Future<String> getuserNotificationCount(apikey) async {
     Api api = Api();
-    print("userid $apikey");
     return Future.value(json.decode(await api.Geturl(
         "customer/get-profile?apiKey=$apikey&branch=${PrefUtils.prefs!.getString("branch")}"))["notification_count"]);
   }
@@ -441,7 +383,7 @@ class Auth {
       "email": email,
       "tokenId": PrefUtils.prefs!.getString('ftokenid')!,
     };
-    var _url = await api.Posturl(/*"customer/email-check"*/"customer/email-login");
+    var _url = await api.Posturl("customer/email-login");
     var value = EmailResponse.fromJson(json.decode(_url));
     if(value.status! && value.type == "old"){
       PrefUtils.prefs!.setString("apikey", value.apikey!);
@@ -451,23 +393,11 @@ class Auth {
         SetCartItem(CartTask.fetch ,onloade: (value){});
       }, onerror: {
       });
-      //});
     }
-    debugPrint("v l u e . . . . ." + value.apikey.toString());
     return value;
   }
-  /*Future<EmailResponse> _isnewUser(String email) async {
-    Api api = Api();
-    api.body = {
-      "email": email,
-      "tokenId": PrefUtils.prefs!.getString('ftokenid')!,
-    };
-    var _url = await api.Posturl("customer/email-check");
-    return EmailResponse.fromJson(json.decode(_url));
-  }*/
   Future<EmailResponse> _isnewUserApple(String appleid) async {
     Api api = Api();
-
     api.body = {
       "email":appleid,
       "tokenId":PrefUtils.prefs!.getString("ftokenid")!
@@ -594,11 +524,11 @@ class RegisterAuthBodyParm {
     data['mobileNumber'] = this.mobileNumber!;
     data['ref'] = this.ref!;
     data['branchtype'] = this.branchtype!;
-    data['shop_name'] = shopname ?? '';
-    data['pincode'] = this.pincode ?? '';
-    data['gst'] = this.gst ?? '';
-    data['image'] = this.image ?? '';
-    data['language_code'] = this.language_code ?? '';
+    data['shop_name'] = this.shopname.toString();
+    data['pincode'] = this.pincode.toString();
+    data['gst'] = this.gst.toString();
+    data['image'] = this.image.toString();
+    data['language_code'] = this.language_code!;
     return data;
   }
 }

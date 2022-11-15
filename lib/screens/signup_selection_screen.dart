@@ -82,7 +82,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
       });
       try {
         if (Platform.isIOS) {
-          SignInApple.clickAppleSignIn();
+          //  SignInApple.clickAppleSignIn();
           // SignInApple.onCredentialRevoked.listen((_) {});
           if (await SignInApple.canUseAppleSigin()) {
             setState(() {
@@ -107,7 +107,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         _referController.text = PrefUtils.prefs!.getString("referCodeDynamic")!;
       }
       if (PrefUtils.prefs!.getString('applesignin') == "yes") {
-        _appletoken = PrefUtils.prefs!.getString('apple')!;
+        _appletoken = PrefUtils.prefs!.getString('apple').toString();
       } else {
         _appletoken = "";
       }
@@ -282,7 +282,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
 
     PrefUtils.prefs!.setString('prevscreen', "signingoogle");
     //checkusertype("Googlesigin");
-    //Navigator.pop(context);
     userappauth.login(AuthPlatform.google,onSucsess: (SocialAuthUser value,_){
       if(value.newuser!){
         userappauth.register(data:RegisterAuthBodyParm(
@@ -290,7 +289,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
           email: value.email,
           branch: PrefUtils.prefs!.getString("branch"),
           tokenId:PrefUtils.prefs!.getString("ftokenid"),
-          guestUserId:PrefUtils.prefs!.getString("ftokenid"),
+          guestUserId:PrefUtils.prefs!.getString("tokenid"),
           device:channel,
           referralid:_referController.text,
           path: _appletoken ,
@@ -339,6 +338,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         _auth.getuserProfile(onsucsess: (value){
 
         },onerror: (){
+
         });
         /* Navigator.pushNamedAndRemoveUntil(
               context, HomeScreen.routeName, (route) => false);*/
@@ -365,7 +365,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
   }
 
   void initiateFacebookLogin() async {
-    debugPrint("jhgfghj...");
     final facebookLogin = FacebookLogin();
     facebookLogin.loginBehavior =  Platform.isIOS ? FacebookLoginBehavior.webViewOnly :
     FacebookLoginBehavior.nativeOnly;//FacebookLoginBehavior.webViewOnly; facebookLogin.loginBehavior = FacebookLoginBehavior.webViewOnly;
@@ -374,7 +373,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
     final result = await facebookLogin.logIn(['email']);
 
     switch (result.status) {
-
       case FacebookLoginStatus.error:
         debugPrint("jhgfghj...2..");
         if(Features.isfacebookappevent)
@@ -390,7 +388,6 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
         //onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.cancelledByUser:
-        debugPrint("jhgfghj...3..");
         Navigator.of(context).pop();
         if(Platform.isIOS)FocusManager.instance.primaryFocus!.unfocus();
         Fluttertoast.showToast(
@@ -830,10 +827,8 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
   }
 
   Future<void> facebooklogin() async {
-    debugPrint("jhgfghj...7..");
     PrefUtils.prefs!.setString('skip', "no");
     PrefUtils.prefs!.setString('applesignin', "no");
-    debugPrint("jhgfghj...6..");
     initiateFacebookLogin();
   }
 
@@ -1058,7 +1053,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
               Row(
                 children: <Widget>[
                   Container(
-                    height: 80,
+                    height: 140,
                     margin: EdgeInsets.only(
                         left: 30.0, top: 30.0, right: 30.0, bottom: 10.0),
                     width: MediaQuery.of(context).size.width - 80,
@@ -1518,6 +1513,7 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                           onTap: () {
                             _dialogforProcessing();
                             _handleSignIn();
+
                           },
                           child: Material(
                             borderRadius: BorderRadius.circular(4.0),
@@ -1563,106 +1559,106 @@ class SignupSelectionScreenState extends State<SignupSelectionScreen> with Navig
                       ),
                       SizedBox(height: 15,),
                       if(Features.facebooklogin)
-                        Container(
-                          width:MediaQuery.of(context).size.width,
-                          margin: EdgeInsets.symmetric(horizontal: 30),
-                          child: GestureDetector(
-                            onTap: () {
-                              _dialogforProcessing();
-                              // facebooklogin();
-                              if(Features.isfacebookappevent)
-                                FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
-                              userappauth.login(AuthPlatform.facebook,onSucsess: (SocialAuthUser value,_){
-                                //  PrefUtils.prefs!.setString('skip', "no");
-                                //  PrefUtils.prefs!.setString('applesignin', "no");
-                                if(value.newuser!){
-                                  userappauth.register(data:RegisterAuthBodyParm(
-                                    username: value.name,
-                                    email: value.email,
-                                    branch: PrefUtils.prefs!.getString("branch"),
-                                    tokenId:PrefUtils.prefs!.getString("ftokenid"),
-                                    guestUserId:PrefUtils.prefs!.getString("ftokenid"),
-                                    device:channel,
-                                    referralid:_referController.text,
-                                    path: _appletoken, mobileNumber: '' ,
-                                    ref: IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor.toString():"",
-                                    branchtype: IConstants.isEnterprise && Features.ismultivendor?IConstants.branchtype.toString():"",
-                                    language_code: IConstants.languageId,
-                                    //mobileNumber: PrefUtils.prefs!.getString('Mobilenum')
-                                  ),onSucsess: (UserData response){
-                                    // PrefUtils.prefs!.setString('FirstName', response.username);
-                                    //  PrefUtils.prefs!.setString('LastName', "");
-                                    //  PrefUtils.prefs!.setString('Email', response.email);
+                      Container(
+                        width:MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.symmetric(horizontal: 30),
+                        child: GestureDetector(
+                          onTap: () {
+                            _dialogforProcessing();
+                            // facebooklogin();
+                            if(Features.isfacebookappevent)
+                              FaceBookAppEvents.facebookAppEvents.logEvent(name: "fb_login");
+                            userappauth.login(AuthPlatform.facebook,onSucsess: (SocialAuthUser value,_){
+                              //  PrefUtils.prefs!.setString('skip', "no");
+                              //  PrefUtils.prefs!.setString('applesignin', "no");
+                              if(value.newuser!){
+                                userappauth.register(data:RegisterAuthBodyParm(
+                                  username: value.name,
+                                  email: value.email,
+                                  branch: PrefUtils.prefs!.getString("branch"),
+                                  tokenId:PrefUtils.prefs!.getString("ftokenid"),
+                                  guestUserId:PrefUtils.prefs!.getString("ftokenid"),
+                                  device:channel,
+                                  referralid:_referController.text,
+                                  path: _appletoken, mobileNumber: '' ,
+                                  ref: IConstants.isEnterprise && Features.ismultivendor?IConstants.refIdForMultiVendor.toString():"",
+                                  branchtype: IConstants.isEnterprise && Features.ismultivendor?IConstants.branchtype.toString():"",
+                                  language_code: IConstants.languageId,
+                                  //mobileNumber: PrefUtils.prefs!.getString('Mobilenum')
+                                ),onSucsess: (UserData response){
+                                  // PrefUtils.prefs!.setString('FirstName', response.username);
+                                  //  PrefUtils.prefs!.setString('LastName', "");
+                                  //  PrefUtils.prefs!.setString('Email', response.email);
 
-                                    /*Navigator.pushNamedAndRemoveUntil(
-                                  context, HomeScreen.routeName, (route) => false);*/
-                                    Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
-                                  },onerror: (message){
-                                    Navigator.of(context).pop();
-                                    Fluttertoast.showToast(msg: message);
-                                  });
-                                }else{
-                                  PrefUtils.prefs!.setString('LoginStatus', "true");
-                                  PrefUtils.prefs!.setString("apikey",value.id!);
-                                  _auth.getuserProfile(onsucsess: (value){
-
-                                  },onerror: (){
-
-                                  });
                                   /*Navigator.pushNamedAndRemoveUntil(
-                                context, HomeScreen.routeName, (route) => false);*/
+                                  context, HomeScreen.routeName, (route) => false);*/
                                   Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
-                                  ///navigatev to home page
-                                }
+                                },onerror: (message){
+                                  Navigator.of(context).pop();
+                                  Fluttertoast.showToast(msg: message);
+                                });
+                              }else{
+                                PrefUtils.prefs!.setString('LoginStatus', "true");
+                                PrefUtils.prefs!.setString("apikey",value.id!);
+                                _auth.getuserProfile(onsucsess: (value){
 
-                              },onerror:(message){
-                                Navigator.of(context).pop();
-                                Fluttertoast.showToast(msg: message);
-                              });
-                            },
-                            child: Material(
-                              borderRadius: BorderRadius.circular(4.0),
-                              // elevation: 2,
-                              // shadowColor: Colors.grey,
-                              child: Container(
-                                padding: EdgeInsets.only(
-                                  /*left: 10.0, right: 5.0,*/top:10, bottom:10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4.0),
-                                  border: Border.all(width: 0.5, color: ColorCodes.emailColor),),
-                                child:
-                                Padding(
-                                  padding: EdgeInsets.only(/*right:10,*///MediaQuery.of(context).size.width/10,//30.0,
-                                    left:10,/*MediaQuery.of(context).size.width/12,*/),
-                                  child: Center(
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        SvgPicture.asset(Images.facebookImg, width: 25, height: 25,),
-                                        SizedBox(
-                                          width: 15,
-                                        ),
-                                        Text(
-                                          S .of(context).sign_in_with_facebook,//"Sign in with Facebook" ,// "Sign in with Facebook",
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          style: TextStyle(fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: ColorCodes.signincolor),
-                                        ),
-                                        // Image.asset(Images.facebookImg,width: 20,height: 30,),
-                                        // SizedBox(
-                                        //   width: 14,
-                                        // ),
-                                      ],
-                                    ),
+                                },onerror: (){
+
+                                });
+                                /*Navigator.pushNamedAndRemoveUntil(
+                                context, HomeScreen.routeName, (route) => false);*/
+                                Navigation(context, /*name: Routename.Home,*/ navigatore: NavigatoreTyp.homenav);
+                                ///navigatev to home page
+                              }
+
+                            },onerror:(message){
+                              Navigator.of(context).pop();
+                              Fluttertoast.showToast(msg: message);
+                            });
+                          },
+                          child: Material(
+                            borderRadius: BorderRadius.circular(4.0),
+                            // elevation: 2,
+                            // shadowColor: Colors.grey,
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                /*left: 10.0, right: 5.0,*/top:10, bottom:10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4.0),
+                                border: Border.all(width: 0.5, color: ColorCodes.emailColor),),
+                              child:
+                              Padding(
+                                padding: EdgeInsets.only(/*right:10,*///MediaQuery.of(context).size.width/10,//30.0,
+                                  left:10,/*MediaQuery.of(context).size.width/12,*/),
+                                child: Center(
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      SvgPicture.asset(Images.facebookImg, width: 25, height: 25,),
+                                      SizedBox(
+                                        width: 15,
+                                      ),
+                                      Text(
+                                        S .of(context).sign_in_with_facebook,//"Sign in with Facebook" ,// "Sign in with Facebook",
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        style: TextStyle(fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: ColorCodes.signincolor),
+                                      ),
+                                      // Image.asset(Images.facebookImg,width: 20,height: 30,),
+                                      // SizedBox(
+                                      //   width: 14,
+                                      // ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
+                      ),
 
                       if (_isAvailable)
                         Container(
